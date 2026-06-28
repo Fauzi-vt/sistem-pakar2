@@ -12,10 +12,10 @@
         <div class="flex items-center gap-4 w-full lg:w-1/3">
           <button @click="sidebarOpen = !sidebarOpen" 
                   class="lg:hidden flex items-center justify-center p-2 bg-surface-container rounded-lg text-on-surface hover:bg-surface-container-high transition-colors">
-            <span class="material-symbols-outlined">menu</span>
+            <Menu class="w-5 h-5 text-on-surface" />
           </button>
           <div class="relative w-full hidden sm:block">
-            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+            <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant w-5 h-5" />
             <input v-model="searchQuery" class="w-full bg-surface-container-lowest border border-outline-variant rounded pl-10 pr-4 py-2 font-body-sm text-on-surface focus:border-secondary focus:ring-1 focus:ring-secondary outline-none transition-all" placeholder="Cari diagnosa atau pasien..." type="text">
           </div>
         </div>
@@ -27,7 +27,7 @@
             <button @click="notificationMenuOpen = !notificationMenuOpen; profileMenuOpen = false" 
                     class="text-on-surface-variant hover:bg-surface-container-low p-2 rounded transition-colors duration-200 cursor-pointer active:opacity-80 relative flex items-center justify-center"
                     title="Notifikasi">
-              <span class="material-symbols-outlined">notifications</span>
+              <Bell class="w-5 h-5" />
               <!-- Unread badge -->
               <span v-if="logs.length > 0" class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full"></span>
             </button>
@@ -70,7 +70,7 @@
           <button @click="router.push('/admin/pengaturan')" 
                   class="text-on-surface-variant hover:bg-surface-container-low p-2 rounded transition-colors duration-200 cursor-pointer active:opacity-80 flex items-center justify-center"
                   title="Pengaturan">
-            <span class="material-symbols-outlined">settings</span>
+            <Settings class="w-5 h-5" />
           </button>
 
           <!-- Profile Dropdown -->
@@ -102,12 +102,12 @@
                 <div class="p-1">
                   <button @click="router.push('/admin/pengguna'); profileMenuOpen = false" 
                           class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium rounded hover:bg-surface-container-low text-on-surface transition-colors cursor-pointer text-left">
-                    <span class="material-symbols-outlined text-sm text-secondary">group</span>
+                    <Users class="text-secondary w-4 h-4 mr-1 shrink-0" />
                     <span>Manajemen Pengguna</span>
                   </button>
                   <button @click="router.push('/admin/pengaturan'); profileMenuOpen = false" 
                           class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium rounded hover:bg-surface-container-low text-on-surface transition-colors cursor-pointer text-left">
-                    <span class="material-symbols-outlined text-sm text-secondary">settings</span>
+                    <Settings class="text-secondary w-4 h-4 mr-1 shrink-0" />
                     <span>Pengaturan Sistem</span>
                   </button>
                 </div>
@@ -116,7 +116,7 @@
                 <div class="border-t border-outline-variant/60 p-1 bg-surface-container-low">
                   <button @click="handleLogout" 
                           class="w-full flex items-center gap-3 px-3 py-2 text-xs font-bold rounded hover:bg-error-container hover:text-on-error-container text-error transition-all cursor-pointer text-left">
-                    <span class="material-symbols-outlined text-sm">logout</span>
+                    <LogOut class="w-4 h-4 mr-1 shrink-0" />
                     <span>Keluar (Logout)</span>
                   </button>
                 </div>
@@ -124,259 +124,33 @@
             </Transition>
           </div>
         </div>
+        </div>
       </header>
 
       <!-- Main Canvas -->
       <main class="p-container-padding flex-1 flex flex-col gap-section-gap">
+        <DashboardSummary :stats="stats" />
         
-        <!-- System Overview Metrics -->
-        <section>
-          <h2 class="font-headline-md text-headline-md text-primary mb-stack-md">Dashboard Overview</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
-            
-            <!-- Metric Card 1: Total Penyakit -->
-            <div class="bg-surface-container-lowest border border-outline-variant rounded p-stack-md flex flex-col gap-stack-sm hover:shadow-[0_4px_12px_rgba(26,54,93,0.05)] transition-shadow">
-              <div class="flex justify-between items-center text-on-surface-variant">
-                <span class="font-label-sm text-label-sm uppercase tracking-wider">Total Penyakit</span>
-                <span class="material-symbols-outlined text-[20px]">medical_services</span>
-              </div>
-              <div class="font-headline-lg text-headline-lg text-primary">{{ stats.total_penyakit }}</div>
-              <div class="font-body-sm text-body-sm text-secondary flex items-center gap-1">
-                <span class="material-symbols-outlined text-[16px]">arrow_upward</span>
-                +2 bulan ini
-              </div>
-            </div>
-
-            <!-- Metric Card 2: Basis Aturan -->
-            <div class="bg-surface-container-lowest border border-outline-variant rounded p-stack-md flex flex-col gap-stack-sm hover:shadow-[0_4px_12px_rgba(26,54,93,0.05)] transition-shadow">
-              <div class="flex justify-between items-center text-on-surface-variant">
-                <span class="font-label-sm text-label-sm uppercase tracking-wider">Basis Aturan</span>
-                <span class="material-symbols-outlined text-[20px]">menu_book</span>
-              </div>
-              <div class="font-headline-lg text-headline-lg text-primary">{{ stats.total_aturan }}</div>
-              <div class="font-body-sm text-body-sm text-secondary flex items-center gap-1">
-                <span class="material-symbols-outlined text-[16px]">check_circle</span>
-                Tersinkronisasi
-              </div>
-            </div>
-
-            <!-- Metric Card 3: Total Gejala -->
-            <div class="bg-surface-container-lowest border border-outline-variant rounded p-stack-md flex flex-col gap-stack-sm hover:shadow-[0_4px_12px_rgba(26,54,93,0.05)] transition-shadow">
-              <div class="flex justify-between items-center text-on-surface-variant">
-                <span class="font-label-sm text-label-sm uppercase tracking-wider">Total Gejala</span>
-                <span class="material-symbols-outlined text-[20px]">stethoscope</span>
-              </div>
-              <div class="font-headline-lg text-headline-lg text-primary">{{ stats.total_gejala }}</div>
-              <div class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1">
-                Menunggu validasi
-              </div>
-            </div>
-
-            <!-- Metric Card 4: Pasien Terdiagnosa -->
-            <div class="bg-surface-container-lowest border border-outline-variant rounded p-stack-md flex flex-col gap-stack-sm hover:shadow-[0_4px_12px_rgba(26,54,93,0.05)] transition-shadow">
-              <div class="flex justify-between items-center text-on-surface-variant">
-                <span class="font-label-sm text-label-sm uppercase tracking-wider">Pasien Terdiagnosa</span>
-                <span class="material-symbols-outlined text-[20px]">group</span>
-              </div>
-              <div class="font-headline-lg text-headline-lg text-primary">{{ stats.total_riwayat }}</div>
-              <div class="font-body-sm text-body-sm text-secondary flex items-center gap-1">
-                <span class="material-symbols-outlined text-[16px]">trending_up</span>
-                +12% vs pekan lalu
-              </div>
-            </div>
-
-          </div>
-        </section>
-
         <!-- Complex Layout Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
-          
           <!-- Main Data Table Area (Spans 2 columns) -->
           <div class="lg:col-span-2 flex flex-col gap-gutter">
-            <!-- Diagnosis History Table -->
-            <section class="bg-surface-container-lowest border border-outline-variant rounded flex flex-col">
-              <div class="p-stack-md border-b border-outline-variant flex justify-between items-center">
-                <h3 class="font-headline-sm text-headline-sm text-primary">Riwayat Diagnosa Terkini</h3>
-                <button @click="router.push('/admin/riwayat')" 
-                        class="text-secondary font-label-md hover:bg-surface-container-low px-3 py-1 rounded transition-colors border border-transparent hover:border-secondary-container cursor-pointer">
-                  Lihat Semua
-                </button>
-              </div>
-              
-              <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                  <thead>
-                    <tr class="border-b border-primary bg-background">
-                      <th class="p-stack-sm font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider pl-stack-md">Pasien</th>
-                      <th class="p-stack-sm font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Diagnosa (THT)</th>
-                      <th class="p-stack-sm font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider w-1/4">Probabilitas Bayes</th>
-                      <th class="p-stack-sm font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Tanggal</th>
-                      <th class="p-stack-sm font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider pr-stack-md text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-if="loading">
-                      <td colspan="5" class="p-12 text-center text-on-surface-variant">
-                        <div class="flex items-center justify-center gap-2">
-                          <span class="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin border-primary"></span>
-                          <span>Memuat data riwayat...</span>
-                        </div>
-                      </td>
-                    </tr>
-                    <tr v-else-if="filteredDiagnoses.length === 0">
-                      <td colspan="5" class="p-12 text-center text-on-surface-variant italic">Belum ada riwayat diagnosa</td>
-                    </tr>
-                    <tr v-else v-for="row in filteredDiagnoses" :key="row.id"
-                        class="border-b border-outline-variant bg-surface-container-lowest hover:bg-surface-container-low transition-colors">
-                      <td class="p-stack-sm pl-stack-md">
-                        <div class="flex items-center gap-3">
-                          <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0" :class="row.avatarCls">
-                            {{ row.initials }}
-                          </div>
-                          <div>
-                            <div class="font-body-md text-primary font-medium">{{ row.name }}</div>
-                            <div class="font-label-sm text-on-surface-variant">Pasien Umum</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td class="p-stack-sm font-body-sm text-on-surface">
-                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border" :class="row.badgeCls">
-                          {{ row.diagnosis }}
-                        </span>
-                      </td>
-                      <td class="p-stack-sm font-body-sm text-on-surface">
-                        <div class="flex items-center space-x-2">
-                          <div class="flex-1 h-2 bg-surface-container-high rounded-full overflow-hidden">
-                            <div class="h-full rounded-full transition-all duration-700" :class="row.barCls" :style="{width: row.probability}"></div>
-                          </div>
-                          <span class="font-semibold">{{ row.probability }}</span>
-                        </div>
-                      </td>
-                      <td class="p-stack-sm font-body-sm text-on-surface">{{ row.date }}</td>
-                      <td class="p-stack-sm pr-stack-md text-right">
-                        <button @click="openDetails(row)"
-                                class="text-on-surface-variant hover:text-primary p-1.5 rounded-md hover:bg-surface-container transition-colors cursor-pointer" title="View Details">
-                          <span class="material-symbols-outlined text-[20px]">visibility</span>
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </section>
+            <DashboardRecentDiagnosis 
+              :diagnoses="filteredDiagnoses" 
+              :loading="loading" 
+              @view-all="router.push('/admin/riwayat')" 
+            />
           </div>
-
+          
           <!-- Secondary Cards Area (Spans 1 column) -->
-          <div class="flex flex-col gap-gutter">
-            
-            <!-- Knowledge Base Health -->
-            <section class="bg-surface-container-lowest border border-outline-variant rounded p-stack-md flex flex-col gap-stack-md">
-              <div class="flex justify-between items-start">
-                <h3 class="font-headline-sm text-headline-sm text-primary">Aturan Klinis</h3>
-                <span class="material-symbols-outlined text-secondary">verified_user</span>
-              </div>
-              <div class="flex flex-col gap-unit">
-                <div class="flex justify-between items-center font-label-md text-on-surface-variant">
-                  <span>Skor Validasi Aturan</span>
-                  <span class="font-bold text-primary">{{ stats.validation_score || 0 }}%</span>
-                </div>
-                <div class="w-full bg-surface-container-high rounded-full h-2">
-                  <div class="bg-secondary h-2 rounded-full transition-all duration-500" :style="{ width: (stats.validation_score || 0) + '%' }"></div>
-                </div>
-                <p class="font-body-sm text-body-sm text-on-surface-variant mt-2">
-                  <span v-if="(stats.validation_score || 0) === 100">Seluruh penyakit sudah terpetakan dengan basis aturan yang lengkap.</span>
-                  <span v-else-if="(stats.validation_score || 0) >= 70">Basis pengetahuan terpetakan dengan baik berdasarkan regulasi klinis THT.</span>
-                  <span v-else>Basis pengetahuan memerlukan pembaruan aturan relasi penyakit.</span>
-                </p>
-              </div>
-              <button @click="router.push('/admin/aturan')" 
-                      class="bg-primary-container text-on-tertiary font-label-md py-2 px-4 rounded w-full flex items-center justify-center gap-2 hover:bg-primary transition-colors mt-auto cursor-pointer">
-                <span class="material-symbols-outlined text-[18px]">update</span>
-                Update Aturan
-              </button>
-            </section>
-
-            <!-- Recent System Logs -->
-            <section class="bg-surface-container-lowest border border-outline-variant rounded flex flex-col flex-1">
-              <div class="p-stack-md border-b border-outline-variant">
-                <h3 class="font-headline-sm text-headline-sm text-primary">Logs Sistem</h3>
-              </div>
-              <div class="flex flex-col p-stack-sm gap-unit">
-                <div v-if="logs.length === 0" class="p-4 text-center text-on-surface-variant italic">
-                  Belum ada log aktivitas sistem.
-                </div>
-                <div v-else v-for="(log, idx) in logs" :key="idx" 
-                     class="p-2 flex items-start gap-3 hover:bg-surface-container-low rounded transition-colors">
-                  <div class="p-1 rounded mt-1" :class="log.icon_cls">
-                    <span class="material-symbols-outlined text-[16px]">{{ log.icon }}</span>
-                  </div>
-                  <div>
-                    <div class="font-label-md text-primary">{{ log.title }}</div>
-                    <div class="font-label-sm text-on-surface-variant leading-relaxed">{{ log.message }}</div>
-                    <div class="font-label-sm text-outline mt-1">{{ log.time }}</div>
-                  </div>
-                </div>
-              </div>
-              <div class="p-stack-sm border-t border-outline-variant mt-auto">
-                <a @click="router.push('/admin/riwayat')" class="font-label-md text-secondary text-center block w-full hover:underline cursor-pointer">View Audit Trail</a>
-              </div>
-            </section>
-
-          </div>
+          <DashboardChart 
+            :stats="stats" 
+            :logs="logs" 
+            @update-rules="router.push('/admin/aturan')" 
+            @view-audit="router.push('/admin/riwayat')" 
+          />
         </div>
       </main>
-
-      <!-- Footer -->
-      <footer class="border-t border-outline-variant px-6 py-4 bg-surface-container-lowest">
-        <p class="text-on-surface-variant text-xs text-center">© 2026 Sistem Pakar THT — Kelompok 2 · RS Jasa Kartini. All rights reserved.</p>
-      </footer>
-    </div>
-
-    <!-- Details View Modal -->
-    <Transition name="fade">
-      <div v-if="detailModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <!-- Overlay -->
-        <div @click="detailModalOpen = false" class="absolute inset-0 bg-inverse-surface/60 backdrop-blur-sm"></div>
-        <!-- Dialog -->
-        <div class="relative w-full max-w-lg bg-surface-container-lowest rounded-xl shadow-2xl overflow-hidden border border-outline-variant">
-          <div class="flex justify-between items-center px-6 py-4 border-b border-outline-variant bg-surface-container-low">
-            <h3 class="font-bold text-primary flex items-center gap-2">
-              <span class="material-symbols-outlined text-secondary">assignment</span>
-              Detail Riwayat Diagnosa
-            </h3>
-            <button @click="detailModalOpen = false" class="text-on-surface-variant hover:text-on-surface cursor-pointer">
-              <span class="material-symbols-outlined text-lg">close</span>
-            </button>
-          </div>
-          <div class="p-6 space-y-4 text-sm" v-if="selectedRow">
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <p class="text-xs font-semibold text-on-surface-variant uppercase">Pasien</p>
-                <p class="font-bold text-primary mt-1">{{ selectedRow.name }}</p>
-              </div>
-              <div>
-                <p class="text-xs font-semibold text-on-surface-variant uppercase">Tanggal</p>
-                <p class="font-bold text-primary mt-1">{{ selectedRow.date }}</p>
-              </div>
-            </div>
-            <div>
-              <p class="text-xs font-semibold text-on-surface-variant uppercase">Diagnosa Penyakit</p>
-              <div class="mt-1 flex items-center gap-2">
-                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border"
-                      :class="selectedRow.badgeCls">
-                  {{ selectedRow.diagnosis }}
-                </span>
-                <span class="font-bold text-primary">{{ selectedRow.probability }}</span>
-              </div>
-            </div>
-            <div>
-              <p class="text-xs font-semibold text-on-surface-variant uppercase">Gejala Terdeteksi</p>
-              <p class="font-medium text-on-surface-variant mt-1 leading-relaxed">{{ selectedRow.symptomsCount }} gejala dilaporkan.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Transition>
   </div>
 </template>
 
@@ -386,6 +160,10 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
 import { api } from '../../services/api.js'
 import Sidebar from '../../components/Sidebar.vue'
+import DashboardSummary from '@/components/dashboard/DashboardSummary.vue'
+import DashboardRecentDiagnosis from '@/components/dashboard/DashboardRecentDiagnosis.vue'
+import DashboardChart from '@/components/dashboard/DashboardChart.vue'
+import { Menu, Search, Bell, Settings, Users, LogOut } from 'lucide-vue-next'
 
 const router = useRouter()
 const authStore            = useAuthStore()
@@ -397,9 +175,6 @@ const logs                 = ref([])
 const searchQuery          = ref('')
 const notificationMenuOpen = ref(false)
 const profileMenuOpen      = ref(false)
-
-const detailModalOpen = ref(false)
-const selectedRow     = ref(null)
 
 const handleLogout = () => {
   authStore.logout()
