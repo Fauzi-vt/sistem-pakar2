@@ -1,5 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { authStore } from '../stores/auth.js'
+import { useAuthStore } from '@/stores/auth.store.js'
+import authGuard from '@/middlewares/auth.js'
+import guestGuard from '@/middlewares/guest.js'
+import NProgress from 'nprogress'
+import 'nprogress/nprogress.css'
+
+NProgress.configure({ showSpinner: false })
 
 const routes = [
   // ─── Guest Only ───────────────────────────────────────────────
@@ -95,6 +101,7 @@ const routes = [
   {
     path: '/:pathMatch(.*)*',
     redirect: () => {
+      const authStore = useAuthStore()
       if (authStore.isAuthenticated) {
         return authStore.isAdmin ? '/admin/dashboard' : '/home'
       }
@@ -109,29 +116,47 @@ const router = createRouter({
   scrollBehavior: () => ({ top: 0 })
 })
 
-router.beforeEach((to) => {
+router.beforeEach((to, from, next) => {
+  NProgress.start()
+  
+  const authStore = useAuthStore()
   const isAuthenticated = authStore.isAuthenticated
   const userRole = authStore.currentUser?.role
 
   // If a logged-in user lands on `/`, redirect them to their respective home/dashboard
   if (to.path === '/' && isAuthenticated) {
-    return userRole === 'admin' ? '/admin/dashboard' : '/home'
+    NProgress.done()
+    return next(userRole === 'admin' ? '/admin/dashboard' : '/home')
   }
 
-  // Redirect unauthenticated users to login
-  if (to.meta.requiresAuth && !isAuthenticated) {
-    return '/login'
+  // Admin and Auth middleware pipeline
+  if (to.meta.requiresAuth) {
+    return authGuard(to, from, (result) => {
+      NProgress.done()
+      if (result) {
+        next(result)
+      } else {
+        next()
+      }
+    })
   }
 
-  // Redirect authenticated users away from guest pages
-  if (to.meta.guest && isAuthenticated) {
-    return userRole === 'admin' ? '/admin/dashboard' : '/home'
+  if (to.meta.guest) {
+    return guestGuard(to, from, (result) => {
+      NProgress.done()
+      if (result) {
+        next(result)
+      } else {
+        next()
+      }
+    })
   }
 
-  // Redirect users who are accessing the wrong role's route
-  if (to.meta.role && to.meta.role !== userRole) {
-    return userRole === 'admin' ? '/admin/dashboard' : '/home'
-  }
+  next()
+})
+
+router.afterEach(() => {
+  NProgress.done()
 })
 
 export default router
