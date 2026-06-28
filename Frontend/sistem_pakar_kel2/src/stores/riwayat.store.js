@@ -18,6 +18,18 @@ export const useRiwayatStore = defineStore('riwayat', {
       } finally {
         this.loading = false
       }
+    },
+    async deleteRiwayat(id) {
+      try {
+        const response = await riwayatApi.delete(id)
+        if (response.success) {
+          this.riwayatList = this.riwayatList.filter(r => r.id !== id)
+        }
+        return response
+      } catch (error) {
+        console.error(error)
+        throw error
+      }
     }
   }
 })
