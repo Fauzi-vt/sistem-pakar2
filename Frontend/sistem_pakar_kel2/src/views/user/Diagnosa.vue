@@ -24,7 +24,7 @@
               </router-link>
             </template>
             <template v-else>
-              <button @click="handleLogout" class="text-[#ba1a1a] hover:text-red-700 transition-colors">
+              <button @click="handleLogout" class="text-[#ba1a1a] hover:text-red-700 transition-colors cursor-pointer">
                 Keluar
               </button>
             </template>
@@ -40,23 +40,23 @@
         <!-- ════ STEP 1 — Symptom Selection ════ -->
         <div v-if="!diagnosaResult" key="step1">
           <header class="mb-8 text-center md:text-left">
-            <h1 class="text-3xl font-bold text-[#0b1c30] mb-2">Symptom Checklist</h1>
-            <p class="text-sm text-[#3d4947]">Please select all symptoms you are currently experiencing for an initial ENT assessment.</p>
+            <h1 class="text-3xl font-bold text-[#0b1c30] mb-2">Checklist Gejala</h1>
+            <p class="text-sm text-[#3d4947]">Pilih gejala yang Anda alami untuk memulai asesmen THT awal menggunakan probabilitas Bayes.</p>
           </header>
 
           <!-- Loading state -->
           <div v-if="loadingGejala" class="bg-white rounded-xl border border-[#bcc9c6]/30 p-12 text-center shadow-[0px_4px_20px_rgba(15,23,42,0.05)]">
             <div class="flex items-center justify-center gap-2">
-              <span class="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style="border-color:#00685f; border-top-color:transparent"></span>
-              <span class="text-sm font-semibold text-[#6d7a77]">Loading symptom list...</span>
+              <span class="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin border-[#00685f]"></span>
+              <span class="text-sm font-semibold text-[#6d7a77]">Memuat daftar gejala...</span>
             </div>
           </div>
 
           <!-- Error state -->
           <div v-else-if="fetchError" class="bg-white rounded-xl border border-[#bcc9c6]/30 p-8 text-center shadow-[0px_4px_20px_rgba(15,23,42,0.05)]">
-            <p class="text-sm font-semibold text-[#ba1a1a] mb-3">Failed to load symptoms: {{ fetchError }}</p>
-            <button @click="fetchGejala" class="bg-[#00685f] text-white hover:bg-[#005049] px-4 py-2 rounded-lg text-xs font-semibold transition-colors">
-              Try Again
+            <p class="text-sm font-semibold text-[#ba1a1a] mb-3">Gagal memuat gejala: {{ fetchError }}</p>
+            <button @click="fetchGejala" class="bg-[#00685f] text-white hover:bg-[#005049] px-4 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer">
+              Coba Lagi
             </button>
           </div>
 
@@ -74,24 +74,24 @@
 
             <div class="space-y-3">
               <!-- Checklist Items -->
-              <label v-for="gejala in gejalaList" :key="gejala.id"
+              <label v-for="item in gejalaList" :key="item.id"
                      class="flex items-start p-4 rounded-lg hover:bg-[#eff4ff] transition-colors cursor-pointer border border-transparent hover:border-[#bcc9c6]/30 group">
                 <div class="flex items-center h-6">
                   <input class="w-5 h-5 text-[#00685f] border-[#bcc9c6] rounded focus:ring-[#00685f]/50 focus:ring-offset-0 bg-white cursor-pointer" 
                          type="checkbox"
-                         :value="gejala.id"
+                         :value="item.id"
                          v-model="selectedGejala"/>
                 </div>
                 <div class="ml-4 flex-1">
                   <span class="text-base font-semibold text-[#0b1c30] block mb-1 group-hover:text-[#00685f] transition-colors">
-                    {{ gejala.nama }}
+                    {{ item.nama }}
                   </span>
                   <span class="text-xs text-[#3d4947]">
-                    {{ getSymptomDescription(gejala.nama) }} ({{ gejala.kode }})
+                    {{ getSymptomDescription(item.nama) }} ({{ item.kode }})
                   </span>
                 </div>
-                <span class="material-symbols-outlined text-[#6d7a77] group-hover:text-[#00685f] ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {{ getSymptomIcon(gejala.nama) }}
+                <span class="text-[#6d7a77] group-hover:text-[#00685f] ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <component :is="getSymptomIconComponent(item.nama)" class="w-5 h-5" />
                 </span>
               </label>
             </div>
@@ -106,18 +106,18 @@
             <div class="flex justify-end border-t border-[#bcc9c6]/30 pt-6 mt-6">
               <button @click="handleDiagnosa" 
                       :disabled="selectedGejala.length === 0 || isLoading"
-                      class="bg-[#00685f] hover:bg-[#006a61] text-white text-xs font-semibold py-3 px-6 rounded-lg shadow-sm transition-all flex items-center justify-center min-w-[160px] min-h-[44px] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed" 
+                      class="bg-[#00685f] hover:bg-[#006a61] text-white text-xs font-semibold py-3 px-6 rounded-lg shadow-sm transition-all flex items-center justify-center min-w-[160px] min-h-[44px] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer" 
                       type="button">
                 <span v-if="isLoading" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></span>
                 <span>Proses Diagnosa</span>
-                <span class="material-symbols-outlined ml-2 text-[18px]">arrow_forward</span>
+                <ArrowRight class="ml-2 w-4 h-4 text-white" />
               </button>
             </div>
           </form>
         </div>
 
         <!-- ════ STEP 2 — Diagnosis Result ════ -->
-        <div v-else key="step2" class="space-y-6">
+        <div v-else key="step2" class="space-y-6 animate-page-slide">
           <header class="mb-6 text-center md:text-left">
             <h1 class="text-3xl font-bold text-[#0b1c30] mb-2">Hasil Diagnosis</h1>
             <p class="text-sm text-[#3d4947]">Berdasarkan gejala yang Anda masukkan, berikut adalah probabilitas penyakit yang mungkin Anda alami.</p>
@@ -127,7 +127,7 @@
           <div v-if="!topResult" class="bg-white rounded-xl border border-[#bcc9c6]/30 p-12 text-center shadow-[0px_4px_20px_rgba(15,23,42,0.05)]">
             <p class="font-bold text-[#0b1c30] mb-2">Tidak Ada Hasil Diagnosa</p>
             <p class="text-xs text-[#6d7a77] mb-6">Sistem tidak menemukan penyakit yang cocok dengan gejala yang Anda pilih.</p>
-            <button @click="resetDiagnosa" class="bg-[#00685f] text-white hover:bg-[#005049] px-6 py-2.5 rounded-lg text-xs font-semibold">
+            <button @click="resetDiagnosa" class="bg-[#00685f] text-white hover:bg-[#005049] px-6 py-2.5 rounded-lg text-xs font-semibold cursor-pointer">
               Coba Lagi
             </button>
           </div>
@@ -143,7 +143,7 @@
                 <div class="flex-1 space-y-6">
                   
                   <div class="flex items-center gap-2 mb-4">
-                    <span class="material-symbols-outlined text-[#00685f] icon-fill text-2xl">medical_information</span>
+                    <Stethoscope class="text-[#00685f] w-6 h-6" />
                     <h2 class="text-2xl font-bold text-[#00685f]">{{ topResult.nama_penyakit }}</h2>
                   </div>
 
@@ -166,8 +166,8 @@
                     <!-- Deskripsi -->
                     <div>
                       <h3 class="text-base font-bold text-[#0b1c30] mb-2 flex items-center gap-2">
-                        <span class="material-symbols-outlined text-[#006387]">description</span>
-                        Deskripsi Penyakit
+                        <FileText class="text-[#006387] w-5 h-5" />
+                        <span>Deskripsi Penyakit</span>
                       </h3>
                       <p class="text-sm leading-relaxed text-[#3d4947]">
                         {{ topResult.deskripsi || 'Belum ada penjelasan deskriptif yang tersedia untuk penyakit ini.' }}
@@ -177,8 +177,8 @@
                     <!-- Saran Medis -->
                     <div>
                       <h3 class="text-base font-bold text-[#0b1c30] mb-2 flex items-center gap-2">
-                        <span class="material-symbols-outlined text-[#006387]">healing</span>
-                        Saran Medis / Solusi
+                        <HeartPulse class="text-[#006387] w-5 h-5" />
+                        <span>Saran Medis / Solusi</span>
                       </h3>
                       <ul v-if="solutionsList.length > 0" class="text-sm leading-relaxed text-[#3d4947] list-disc list-inside space-y-1">
                         <li v-for="sol in solutionsList" :key="sol">{{ sol }}</li>
@@ -192,10 +192,9 @@
             </div>
 
             <!-- Other Possibilities -->
-            <!-- Other possibilities -->
             <div v-if="otherResults.length > 0" class="bg-white rounded-xl border border-[#bcc9c6]/30 overflow-hidden shadow-sm print:hidden">
               <div class="px-6 py-4 border-b border-[#bcc9c6]/20 bg-[#f8f9ff] flex items-center gap-2">
-                <span class="material-symbols-outlined text-[#6d7a77] text-lg">view_list</span>
+                <ListCollapse class="text-[#6d7a77] w-5 h-5" />
                 <div>
                   <p class="font-bold text-sm text-[#0b1c30]">Kemungkinan Lainnya</p>
                   <p class="text-[11px] text-[#6d7a77]">Penyakit lain yang memiliki kemiripan gejala</p>
@@ -226,13 +225,13 @@
             <!-- Action Area -->
             <div class="flex flex-col sm:flex-row justify-center gap-4 mt-8 border-t border-[#bcc9c6]/30 pt-6 print:hidden">
               <button @click="resetDiagnosa" 
-                      class="bg-[#00685f] text-white hover:bg-[#005049] text-xs font-semibold px-6 py-3 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 active:scale-95">
-                <span class="material-symbols-outlined text-lg">restart_alt</span>
+                      class="bg-[#00685f] text-white hover:bg-[#005049] text-xs font-semibold px-6 py-3 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 active:scale-95 cursor-pointer">
+                <RotateCcw class="w-4 h-4 text-white" />
                 <span>Konsultasi Ulang</span>
               </button>
               <button @click="printResult" 
-                      class="bg-white text-[#00685f] border border-[#00685f] hover:bg-[#e5eeff] text-xs font-semibold px-6 py-3 rounded-lg transition-colors flex items-center justify-center gap-2 active:scale-95">
-                <span class="material-symbols-outlined text-lg">print</span>
+                      class="bg-white text-[#00685f] border border-[#00685f] hover:bg-[#e5eeff] text-xs font-semibold px-6 py-3 rounded-lg transition-colors flex items-center justify-center gap-2 active:scale-95 cursor-pointer">
+                <Printer class="w-4 h-4 text-[#00685f]" />
                 <span>Cetak Hasil</span>
               </button>
             </div>
@@ -252,11 +251,20 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { api } from '../../services/api.js'
 import { useAuthStore } from '@/stores/auth.store'
+import { useGejalaStore } from '@/stores/gejala.store'
+import { useDiagnosaStore } from '@/stores/diagnosa.store'
+import Sidebar from '@/components/Sidebar.vue'
+import { 
+  ArrowRight, Stethoscope, FileText, HeartPulse, ListCollapse, 
+  RotateCcw, Printer, Thermometer, Wind, Ear, Siren, Droplets, Info, Menu, Search
+} from 'lucide-vue-next'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const gejalaStore = useGejalaStore()
+const diagnosaStore = useDiagnosaStore()
+
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 const userId          = computed(() => authStore.currentUser?.id || null)
 
@@ -265,12 +273,13 @@ const handleLogout = () => {
   router.push('/login')
 }
 
-const gejalaList     = ref([])
+const gejalaList = computed(() => gejalaStore.gejalaList)
+const loadingGejala = computed(() => gejalaStore.loading)
+const isLoading = computed(() => diagnosaStore.loading)
+const diagnosaResult = computed(() => diagnosaStore.result)
+
 const selectedGejala = ref([])
-const loadingGejala  = ref(false)
 const fetchError     = ref(null)
-const isLoading      = ref(false)
-const diagnosaResult = ref(null)
 const diagnosaError  = ref(null)
 
 const topResult    = computed(() => diagnosaResult.value?.hasil?.[0] || null)
@@ -287,35 +296,31 @@ const solutionsList = computed(() => {
 
 const getSymptomDescription = (name) => {
   const map = {
-    'Sakit Tenggorokan': 'Pain, scratchiness, or irritation of the throat that often worsens when swallowing.',
-    'Telinga Berdengung': 'Ringing, buzzing, roaring, clicking, or hissing sound in the ears (Tinnitus).',
-    'Demam': 'Elevated body temperature often associated with infection or inflammation.',
-    'Hidung Tersumbat': 'Stuffy nose, difficulty breathing through the nasal passages.',
-    'Nyeri Menelan': 'Discomfort or sharp pain experienced specifically during the act of swallowing.',
+    'Sakit Tenggorokan': 'Rasa sakit, gatal, atau iritasi pada tenggorokan yang biasanya memburuk saat menelan.',
+    'Telinga Berdengung': 'Suara berdengung, berdesir, atau berdencing di dalam telinga (Tinnitus).',
+    'Demam': 'Kenaikan suhu tubuh yang dikaitkan dengan proses infeksi atau radang.',
+    'Hidung Tersumbat': 'Kesulitan bernapas melalui hidung akibat penyumbatan mukosa.',
+    'Nyeri Menelan': 'Discomfort atau rasa sakit tajam saat melakukan gerakan menelan.',
   }
   return map[name] || 'Gejala klinis THT. Pilih jika Anda merasakan kondisi ini untuk membantu diagnosis.'
 }
 
-const getSymptomIcon = (name) => {
+const getSymptomIconComponent = (name) => {
   const nameLower = name.toLowerCase()
-  if (nameLower.includes('tenggorokan')) return 'sick'
-  if (nameLower.includes('dengung') || nameLower.includes('telinga') || nameLower.includes('dengar')) return 'hearing'
-  if (nameLower.includes('demam') || nameLower.includes('panas') || nameLower.includes('suhu')) return 'thermometer'
-  if (nameLower.includes('sumbat') || nameLower.includes('hidung') || nameLower.includes('napas') || nameLower.includes('pilek')) return 'air'
-  if (nameLower.includes('menelan') || nameLower.includes('tenggorok') || nameLower.includes('nyeri')) return 'local_drink'
-  return 'health_and_safety'
+  if (nameLower.includes('tenggorokan')) return Siren
+  if (nameLower.includes('dengung') || nameLower.includes('telinga') || nameLower.includes('dengar')) return Ear
+  if (nameLower.includes('demam') || nameLower.includes('panas') || nameLower.includes('suhu')) return Thermometer
+  if (nameLower.includes('sumbat') || nameLower.includes('hidung') || nameLower.includes('napas') || nameLower.includes('pilek')) return Wind
+  if (nameLower.includes('menelan') || nameLower.includes('tenggorok') || nameLower.includes('nyeri')) return Droplets
+  return Info
 }
 
 const fetchGejala = async () => {
-  loadingGejala.value = true
-  fetchError.value    = null
+  fetchError.value = null
   try {
-    const res = await api.getGejala()
-    gejalaList.value = (res.success && Array.isArray(res.data)) ? res.data : []
+    await gejalaStore.fetchGejala()
   } catch (err) {
     fetchError.value = err.message || 'Gagal terhubung ke server.'
-  } finally {
-    loadingGejala.value = false
   }
 }
 
@@ -324,21 +329,17 @@ const handleDiagnosa = async () => {
     diagnosaError.value = 'Silakan pilih setidaknya satu gejala.'
     return
   }
-  isLoading.value     = true
   diagnosaError.value = null
   try {
-    const res = await api.runDiagnosa(userId.value, selectedGejala.value)
-    diagnosaResult.value = res
+    await diagnosaStore.runDiagnosa(userId.value, selectedGejala.value)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   } catch (err) {
     diagnosaError.value = err.message || 'Terjadi kesalahan saat menjalankan diagnosa.'
-  } finally {
-    isLoading.value = false
   }
 }
 
 const resetDiagnosa = () => {
-  diagnosaResult.value = null
+  diagnosaStore.$reset()
   diagnosaError.value  = null
   selectedGejala.value = []
   window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -352,10 +353,6 @@ onMounted(fetchGejala)
 </script>
 
 <style scoped>
-.icon-fill {
-  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-}
-
 .page-slide-enter-active { transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
 .page-slide-leave-active { transition: all 0.2s ease-in; }
 .page-slide-enter-from   { opacity: 0; transform: translateY(16px); }
