@@ -12,7 +12,7 @@
         <div class="flex items-center gap-4 w-full lg:w-1/2">
           <button @click="sidebarOpen = !sidebarOpen" 
                   class="lg:hidden flex items-center justify-center p-2 bg-surface-container rounded-lg text-on-surface hover:bg-surface-container-high transition-colors">
-            <span class="material-symbols-outlined">menu</span>
+            <Menu class="w-5 h-5 text-on-surface" />
           </button>
           <div>
             <h1 class="font-headline-lg text-headline-lg font-bold text-primary leading-tight">Data Gejala</h1>
@@ -23,8 +23,8 @@
         <div class="flex items-center gap-stack-md shrink-0">
           <button @click="openCreateModal"
             class="bg-primary-container text-on-tertiary font-label-md py-2.5 px-4 rounded flex items-center justify-center gap-2 hover:bg-primary transition-all cursor-pointer active:scale-95">
-            <span class="material-symbols-outlined text-[18px]">add</span>
-            Tambah Gejala Baru
+            <Plus class="w-5 h-5 text-on-tertiary" />
+            <span>Tambah Gejala Baru</span>
           </button>
         </div>
       </header>
@@ -41,118 +41,59 @@
         <div class="bg-surface-container-lowest border border-outline-variant rounded p-stack-md shadow-sm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
           <!-- Search box -->
           <div class="relative w-full sm:w-1/3 min-w-[250px]">
-            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+            <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant w-5 h-5" />
             <input 
               v-model="searchQuery"
-              @input="currentPage = 1"
               class="w-full bg-surface-container-lowest border border-outline-variant rounded pl-10 pr-4 py-2 font-body-sm text-on-surface focus:border-secondary focus:ring-1 focus:ring-secondary outline-none transition-all" 
               placeholder="Cari Kode atau Nama Gejala..." 
               type="text"
             />
           </div>
-          <!-- Filter Actions -->
-          <div class="flex gap-stack-sm self-end sm:self-auto">
-            <button class="px-4 py-2 border border-outline-variant rounded font-label-md text-label-md text-on-surface hover:bg-surface-container-low transition-colors flex items-center gap-2 cursor-pointer">
-              <span class="material-symbols-outlined text-[18px]">filter_list</span> 
-              Filter
-            </button>
-          </div>
         </div>
 
         <!-- Data Table Card Container -->
-        <section class="bg-surface-container-lowest border border-outline-variant rounded flex flex-col shadow-sm">
-          <div class="overflow-x-auto w-full">
-            <table class="w-full text-left border-collapse">
-              <thead>
-                <tr class="border-b-2 border-primary bg-background">
-                  <th class="p-4 pl-6 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider w-36">Kode Gejala</th>
-                  <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider w-1/4">Nama Gejala</th>
-                  <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Deskripsi Singkat</th>
-                  <th class="p-4 pr-6 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider text-right w-36">Aksi</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-outline-variant/30">
-                <tr v-if="loading">
-                  <td colspan="4" class="p-12 text-center text-on-surface-variant">
-                    <div class="flex items-center justify-center gap-2">
-                      <span class="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin border-primary"></span>
-                      <span>Memuat data gejala...</span>
-                    </div>
-                  </td>
-                </tr>
-                <tr v-else-if="filteredGejala.length === 0">
-                  <td colspan="4" class="p-12 text-center text-on-surface-variant italic">Tidak ada data gejala</td>
-                </tr>
-                
-                <tr v-else v-for="item in paginatedGejala" :key="item.id"
-                    class="border-b border-outline-variant bg-surface-container-lowest hover:bg-surface-container-low transition-colors group">
-                  <!-- Kode -->
-                  <td class="p-4 pl-6 font-body-md text-primary font-medium">
-                    {{ item.kode }}
-                  </td>
-                  
-                  <!-- Nama -->
-                  <td class="p-4 font-body-sm text-on-surface font-semibold">
-                    {{ item.nama }}
-                  </td>
-                  
-                  <!-- Deskripsi -->
-                  <td class="p-4 font-body-sm text-on-surface-variant leading-relaxed">
-                    {{ descriptionMap[item.kode] || 'Deskripsi gejala klinis.' }}
-                  </td>
-                  
-                  <!-- Aksi (with opacity transition on hover) -->
-                  <td class="p-4 pr-6 text-right">
-                    <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-                      <button @click="openEditModal(item)"
-                              class="text-primary hover:bg-surface-container p-1 rounded transition-colors cursor-pointer" 
-                              title="Edit">
-                        <span class="material-symbols-outlined text-[20px]">edit</span>
-                      </button>
-                      <button @click="confirmDelete(item)"
-                              class="text-error hover:bg-error-container rounded p-1 transition-colors cursor-pointer" 
-                              title="Hapus">
-                        <span class="material-symbols-outlined text-[20px]">delete</span>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Pagination Section -->
-          <div v-if="filteredGejala.length > 0" 
-               class="bg-background border-t border-outline-variant p-4 flex items-center justify-between">
-            <p class="font-body-sm text-body-sm text-on-surface-variant">
-              Menampilkan {{ pageStartIndex }}-{{ pageEndIndex }} dari {{ filteredGejala.length }} gejala
-            </p>
-            <div class="flex gap-unit">
-              <!-- Prev button -->
-              <button @click="currentPage > 1 && currentPage--" 
-                      :disabled="currentPage === 1"
-                      class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface hover:bg-surface-container-low transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
-                <span class="material-symbols-outlined text-[16px]">chevron_left</span>
-              </button>
-              
-              <!-- Page indices -->
-              <button v-for="page in totalPages" :key="page"
-                      @click="currentPage = page"
-                      class="w-8 h-8 flex items-center justify-center rounded font-label-md text-label-md transition-colors cursor-pointer"
-                      :class="currentPage === page
-                        ? 'bg-primary-container text-on-tertiary font-bold'
-                        : 'border border-outline-variant text-on-surface hover:bg-surface-container-low'">
-                {{ page }}
-              </button>
-
-              <!-- Next button -->
-              <button @click="currentPage < totalPages && currentPage++" 
-                      :disabled="currentPage === totalPages"
-                      class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface hover:bg-surface-container-low transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
-                <span class="material-symbols-outlined text-[16px]">chevron_right</span>
-              </button>
-            </div>
-          </div>
+        <section class="bg-surface-container-lowest border border-outline-variant rounded flex flex-col shadow-sm p-4">
+          <DataTable :value="filteredGejala" :paginator="true" :rows="10" :loading="loading"
+                     class="p-datatable-sm w-full text-sm" responsiveLayout="scroll">
+            <template #empty>
+              <div class="text-center py-6 text-on-surface-variant italic">
+                Tidak ada data gejala ditemukan
+              </div>
+            </template>
+            <Column field="kode" header="Kode Gejala" :sortable="true" style="width: 150px">
+              <template #body="slotProps">
+                <span class="font-bold text-primary tracking-wider">{{ slotProps.data.kode }}</span>
+              </template>
+            </Column>
+            <Column field="nama" header="Nama Gejala" :sortable="true" style="width: 300px">
+              <template #body="slotProps">
+                <span class="font-bold text-on-surface">{{ slotProps.data.nama }}</span>
+              </template>
+            </Column>
+            <Column header="Deskripsi Singkat">
+              <template #body="slotProps">
+                <span class="text-on-surface-variant leading-relaxed">
+                  {{ descriptionMap[slotProps.data.kode] || 'Deskripsi gejala klinis.' }}
+                </span>
+              </template>
+            </Column>
+            <Column header="Aksi" style="text-align: right; width: 140px">
+              <template #body="slotProps">
+                <div class="flex items-center justify-end gap-2">
+                  <button @click="openEditModal(slotProps.data)"
+                          class="text-secondary hover:bg-surface-container-low p-1.5 rounded transition-colors cursor-pointer"
+                          title="Edit Gejala">
+                    <Edit class="w-5 h-5 text-secondary" />
+                  </button>
+                  <button @click="confirmDelete(slotProps.data)"
+                          class="text-error hover:bg-error-container p-1.5 rounded transition-colors cursor-pointer"
+                          title="Hapus Gejala">
+                    <Trash2 class="w-5 h-5 text-error" />
+                  </button>
+                </div>
+              </template>
+            </Column>
+          </DataTable>
         </section>
 
       </main>
@@ -163,63 +104,55 @@
       </footer>
     </div>
 
-    <!-- ── FORM MODAL (Add / Edit) ── -->
+    <!-- ── FORM DIALOG (Add / Edit) ── -->
     <Transition name="modal-fade">
-      <div v-if="modalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <!-- Overlay -->
-        <div @click="closeModal" class="absolute inset-0 bg-inverse-surface/60 backdrop-blur-sm"></div>
-
+      <div v-if="modalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-on-surface/40 backdrop-blur-sm">
         <!-- Dialog Box -->
-        <div class="relative w-full max-w-lg bg-surface-container-lowest rounded-xl shadow-2xl overflow-hidden border border-outline-variant animate-modal-pop">
+        <div class="relative w-full max-w-lg bg-surface-container-lowest rounded-xl shadow-2xl overflow-hidden border border-outline-variant animate-modal-pop text-left">
           <!-- Header -->
           <div class="flex items-center justify-between px-6 py-4 border-b border-outline-variant bg-surface-container-low">
             <h3 class="font-bold text-primary flex items-center gap-2">
               <span class="w-2.5 h-2.5 rounded-full bg-secondary"></span>
-              {{ isEditing ? 'Edit Data Gejala' : 'Tambah Gejala Baru' }}
+              <span>{{ isEditing ? 'Edit Data Gejala' : 'Tambah Gejala Baru' }}</span>
             </h3>
-            <button @click="closeModal" class="text-on-surface-variant hover:text-on-surface cursor-pointer">
-              <span class="material-symbols-outlined text-lg">close</span>
+            <button @click="modalOpen = false" class="text-on-surface-variant hover:text-on-surface cursor-pointer">
+              <X class="w-5 h-5" />
             </button>
           </div>
 
           <!-- Body Form -->
-          <form @submit.prevent="handleSubmit" class="p-6 space-y-4 text-sm">
-            <div v-if="formError" class="p-3 bg-error-container text-on-error-container rounded-lg border border-error/20 flex gap-2 items-start text-xs">
-              <span class="material-symbols-outlined text-base">warning</span>
-              <span>{{ formError }}</span>
-            </div>
-
+          <form @submit.prevent="handleSubmitForm" class="p-6 space-y-4 text-sm">
             <!-- Kode Gejala -->
             <div>
               <label class="block font-bold text-xs uppercase tracking-wider mb-1.5 text-on-surface-variant">Kode Gejala <span class="text-error">*</span></label>
               <input
-                v-model="formData.kode"
+                v-model="kode"
                 type="text"
-                required
                 placeholder="Contoh: G01"
                 class="w-full bg-surface-container-lowest border border-outline-variant rounded px-4 py-2 text-on-surface focus:border-secondary focus:ring-1 focus:ring-secondary outline-none transition-all"
-                @input="formData.kode = formData.kode.toUpperCase()"
+                @input="kode = kode.toUpperCase()"
               />
-              <p class="text-[10px] mt-1 text-on-surface-variant">Gunakan kode unik (contoh: G01, G02, G03)</p>
+              <p v-if="errors.kode" class="text-xs text-error mt-1">{{ errors.kode }}</p>
+              <p v-else class="text-[10px] mt-1 text-on-surface-variant">Gunakan kode unik (contoh: G01, G02, G03)</p>
             </div>
 
             <!-- Nama Gejala -->
             <div>
               <label class="block font-bold text-xs uppercase tracking-wider mb-1.5 text-on-surface-variant">Nama Gejala <span class="text-error">*</span></label>
               <input
-                v-model="formData.nama"
+                v-model="nama"
                 type="text"
-                required
                 placeholder="Contoh: Nyeri tenggorokan"
                 class="w-full bg-surface-container-lowest border border-outline-variant rounded px-4 py-2 text-on-surface focus:border-secondary focus:ring-1 focus:ring-secondary outline-none transition-all"
               />
+              <p v-if="errors.nama" class="text-xs text-error mt-1">{{ errors.nama }}</p>
             </div>
 
             <!-- Action buttons -->
             <div class="flex items-center justify-end gap-3 pt-4 border-t border-outline-variant/50">
               <button
                 type="button"
-                @click="closeModal"
+                @click="modalOpen = false"
                 class="px-4 py-2 border border-outline-variant rounded font-semibold hover:bg-surface-container-low transition-colors cursor-pointer text-on-surface"
               >
                 Batal
@@ -238,115 +171,51 @@
       </div>
     </Transition>
 
-    <!-- ── CONFIRM DELETE MODAL ── -->
-    <Transition name="modal-fade">
-      <div v-if="deleteModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <!-- Overlay -->
-        <div @click="closeDeleteModal" class="absolute inset-0 bg-inverse-surface/60 backdrop-blur-sm"></div>
-
-        <!-- Dialog Box -->
-        <div class="relative w-full max-w-md bg-surface-container-lowest rounded-xl shadow-2xl overflow-hidden border border-outline-variant animate-modal-pop">
-          <div class="p-6 text-center">
-            <div class="w-14 h-14 rounded-full bg-error-container text-on-error-container flex items-center justify-center mx-auto mb-4 border border-error/20">
-              <span class="material-symbols-outlined text-2xl text-error">delete</span>
-            </div>
-
-            <h3 class="font-bold text-lg mb-2 text-primary">Hapus Gejala?</h3>
-            <p class="text-sm mb-6 leading-relaxed text-on-surface-variant">
-              Apakah Anda yakin ingin menghapus gejala <strong class="text-primary">{{ gejalaToDelete?.kode }} - {{ gejalaToDelete?.nama }}</strong>? 
-              <br><span class="text-xs mt-1 block text-error font-semibold">Tindakan ini permanen dan tidak dapat dibatalkan.</span>
-            </p>
-
-            <div class="flex items-center justify-center gap-3">
-              <button
-                type="button"
-                @click="closeDeleteModal"
-                class="px-4 py-2 border border-outline-variant rounded font-semibold hover:bg-surface-container-low transition-colors cursor-pointer text-on-surface"
-              >
-                Batal
-              </button>
-              <button
-                type="button"
-                @click="handleDelete"
-                :disabled="submitting"
-                class="px-5 py-2 bg-error text-on-tertiary font-bold rounded hover:bg-red-700 transition-all cursor-pointer active:scale-95 flex items-center gap-2"
-              >
-                <span v-if="submitting" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                <span>Hapus</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Transition>
-
-    <!-- ── TOAST NOTIFICATIONS ── -->
-    <div class="fixed bottom-6 right-6 z-50 flex flex-col gap-2.5 max-w-sm w-full">
-      <TransitionGroup name="toast-list">
-        <div
-          v-for="toast in toasts"
-          :key="toast.id"
-          class="flex items-start gap-3 p-4 bg-surface-container-lowest rounded-xl border shadow-2xl transition-all duration-300 border-outline-variant/60"
-        >
-          <div class="mt-0.5 shrink-0">
-            <span v-if="toast.type === 'success'" class="material-symbols-outlined text-secondary">check_circle</span>
-            <span v-else class="material-symbols-outlined text-error">error</span>
-          </div>
-
-          <div class="flex-1">
-            <p class="text-sm font-bold leading-tight text-primary">
-              {{ toast.type === 'success' ? 'Sukses' : 'Gagal' }}
-            </p>
-            <p class="text-xs mt-0.5 leading-relaxed text-on-surface-variant">{{ toast.message }}</p>
-          </div>
-
-          <button @click="removeToast(toast.id)" class="text-on-surface-variant hover:text-on-surface cursor-pointer shrink-0">
-            <span class="material-symbols-outlined text-base">close</span>
-          </button>
-        </div>
-      </TransitionGroup>
-    </div>
-
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { api } from '../../services/api.js'
-import Sidebar from '../../components/Sidebar.vue'
+import { useGejalaStore } from '@/stores/gejala.store'
+import { useToast } from 'primevue/usetoast'
+import { useConfirm } from 'primevue/useconfirm'
+import { useForm } from 'vee-validate'
+import { gejalaSchema } from '@/schemas/gejala.schema'
+import Sidebar from '@/components/Sidebar.vue'
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
+import { Menu, Search, Plus, Trash2, Edit, X } from 'lucide-vue-next'
 
-// ── State variables ───────────────────────────────────────────
 const sidebarOpen = ref(false)
-const gejala = ref([])
 const searchQuery = ref('')
-const loading = ref(false)
-const error = ref(null)
+const toast = useToast()
+const confirm = useConfirm()
 
-// Pagination State
-const currentPage = ref(1)
-const itemsPerPage = ref(5) // Paginate 5 items per page
+const gejalaStore = useGejalaStore()
+const gejala = computed(() => gejalaStore.gejalaList)
+const loading = computed(() => gejalaStore.loading)
 
-// Form Modal State
 const modalOpen = ref(false)
 const isEditing = ref(false)
+const currentId = ref(null)
 const submitting = ref(false)
-const formError = ref(null)
-const formData = ref({ id: '', kode: '', nama: '' })
 
-// Delete Modal State
-const deleteModalOpen = ref(false)
-const gejalaToDelete = ref(null)
+const { handleSubmit, errors, defineField, setValues, resetForm } = useForm({
+  validationSchema: gejalaSchema,
+  initialValues: {
+    kode: '',
+    nama: ''
+  }
+})
 
-// Toast System State
-const toasts = ref([])
-let toastIdCounter = 0
+const [kode] = defineField('kode')
+const [nama] = defineField('nama')
 
-// Clinical Descriptions local map matching ICD-10 symptoms list
 const descriptionMap = {
-  'G01': 'Rasa nyeri atau iritasi pada tenggorokan, seringkali memburuk saat menelan.',
-  'G02': 'Peningkatan suhu tubuh di atas normal (37.5°C).',
-  'G03': 'Tidur mendengkur akibat adanya hambatan aliran udara di jalan napas.',
-  'G04': 'Peningkatan suhu tubuh berulang dalam jangka waktu tertentu.',
+  'G01': 'Kenaikan suhu tubuh di atas batas normal (37.5°C) akibat reaksi inflamasi.',
+  'G02': 'Rasa nyeri atau tidak nyaman pada tenggorokan saat menelan makanan atau cairan.',
+  'G03': 'Suara yang terdengar serak, lemah, atau bahkan hilang akibat peradangan pita suara.',
+  'G04': 'Keluarnya lendir berlebih atau sensasi menggelitik pada tenggorokan yang memicu batuk.',
   'G05': 'Aroma tidak sedap yang keluar dari rongga mulut.',
   'G06': 'Pembengkakan pada kelenjar getah bening di area leher.',
   'G07': 'Sensasi tekanan atau sumbatan di dalam rongga telinga.',
@@ -365,7 +234,6 @@ const descriptionMap = {
   'G20': 'Pembengkakan atau inflamasi pada daun telinga atau liang telinga.'
 }
 
-// ── Computed ──────────────────────────────────────────────────
 const filteredGejala = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
   if (!q) return gejala.value
@@ -374,127 +242,107 @@ const filteredGejala = computed(() => {
   )
 })
 
-// ── Computed: pagination logic ────────────────────────────────
-const totalPages = computed(() => {
-  return Math.ceil(filteredGejala.value.length / itemsPerPage.value) || 1
-})
-
-const paginatedGejala = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value
-  const end = start + itemsPerPage.value
-  return filteredGejala.value.slice(start, end)
-})
-
-const pageStartIndex = computed(() => {
-  if (filteredGejala.value.length === 0) return 0
-  return (currentPage.value - 1) * itemsPerPage.value + 1
-})
-
-const pageEndIndex = computed(() => {
-  return Math.min(currentPage.value * itemsPerPage.value, filteredGejala.value.length)
-})
-
-// ── API ───────────────────────────────────────────────────────
 const fetchGejala = async () => {
-  loading.value = true
-  error.value   = null
   try {
-    const res = await api.getGejala()
-    gejala.value = res.success ? res.data : []
+    await gejalaStore.fetchGejala()
   } catch (err) {
-    error.value = err.message
-    showToast('error', err.message)
-  } finally {
-    loading.value = false
+    toast.add({ severity: 'error', summary: 'Gagal', detail: 'Gagal memuat gejala: ' + err.message, life: 3000 })
   }
 }
 
-// ── Toast ─────────────────────────────────────────────────────
-const showToast = (type, message) => {
-  const id = toastIdCounter++
-  toasts.value.push({ id, type, message })
-  setTimeout(() => removeToast(id), 4500)
-}
-const removeToast = (id) => { toasts.value = toasts.value.filter(t => t.id !== id) }
-
-// ── Modal helpers ─────────────────────────────────────────────
 const openCreateModal = () => {
   isEditing.value = false
-  formError.value = null
-  formData.value  = { id: '', kode: '', nama: '' }
+  currentId.value = null
+  resetForm({
+    values: {
+      kode: '',
+      nama: ''
+    }
+  })
   modalOpen.value = true
 }
 
 const openEditModal = (item) => {
   isEditing.value = true
-  formError.value = null
-  formData.value  = { id: item.id, kode: item.kode, nama: item.nama }
+  currentId.value = item.id
+  setValues({
+    kode: item.kode,
+    nama: item.nama
+  })
   modalOpen.value = true
 }
 
-const closeModal = () => { if (!submitting.value) modalOpen.value = false }
-
-// ── Submit ────────────────────────────────────────────────────
-const handleSubmit = async () => {
-  if (!formData.value.kode.trim() || !formData.value.nama.trim()) {
-    formError.value = 'Kode dan nama gejala wajib diisi.'
-    return
-  }
+const handleSubmitForm = handleSubmit(async (values) => {
   submitting.value = true
-  formError.value  = null
   try {
-    const payload = { kode: formData.value.kode.trim().toUpperCase(), nama: formData.value.nama.trim() }
-    const res = isEditing.value
-      ? await api.updateGejala(formData.value.id, payload)
-      : await api.createGejala(payload)
-    if (res.success) {
-      showToast('success', isEditing.value ? `Gejala '${payload.kode}' berhasil diperbarui.` : `Gejala '${payload.kode}' berhasil ditambahkan.`)
-      modalOpen.value = false
-      await fetchGejala()
+    const payload = { 
+      kode: values.kode.trim().toUpperCase(), 
+      nama: values.nama.trim() 
+    }
+
+    if (isEditing.value) {
+      const res = await gejalaStore.updateGejala(currentId.value, payload)
+      if (res.success) {
+        toast.add({ severity: 'success', summary: 'Sukses', detail: `Gejala '${payload.kode}' berhasil diperbarui.`, life: 3000 })
+        modalOpen.value = false
+        await fetchGejala()
+      }
+    } else {
+      const res = await gejalaStore.createGejala(payload)
+      if (res.success) {
+        toast.add({ severity: 'success', summary: 'Sukses', detail: `Gejala '${payload.kode}' berhasil ditambahkan.`, life: 3000 })
+        modalOpen.value = false
+        await fetchGejala()
+      }
     }
   } catch (err) {
-    formError.value = err.message
-    showToast('error', err.message)
+    toast.add({ severity: 'error', summary: 'Gagal', detail: err.message || 'Terjadi kesalahan sistem.', life: 3000 })
   } finally {
     submitting.value = false
   }
-}
+})
 
-// ── Delete ────────────────────────────────────────────────────
-const confirmDelete     = (item) => { gejalaToDelete.value = item; deleteModalOpen.value = true }
-const closeDeleteModal  = () => { if (!submitting.value) { deleteModalOpen.value = false; gejalaToDelete.value = null } }
-
-const handleDelete = async () => {
-  if (!gejalaToDelete.value) return
-  submitting.value = true
-  try {
-    const res = await api.deleteGejala(gejalaToDelete.value.id)
-    if (res.success) {
-      showToast('success', `Gejala '${gejalaToDelete.value.kode}' berhasil dihapus.`)
-      deleteModalOpen.value = false
-      gejalaToDelete.value  = null
-      await fetchGejala()
+const confirmDelete = (item) => {
+  confirm.require({
+    message: `Apakah Anda yakin ingin menghapus gejala '${item.kode} - ${item.nama}'? Tindakan ini permanen.`,
+    header: 'Konfirmasi Hapus',
+    icon: 'pi pi-exclamation-triangle',
+    rejectClass: 'p-button-secondary p-button-outlined p-button-sm cursor-pointer',
+    acceptClass: 'p-button-danger p-button-sm cursor-pointer',
+    rejectLabel: 'Batal',
+    acceptLabel: 'Hapus',
+    accept: async () => {
+      try {
+        const res = await gejalaStore.deleteGejala(item.id)
+        if (res.success) {
+          toast.add({ severity: 'success', summary: 'Sukses', detail: `Gejala '${item.kode}' berhasil dihapus.`, life: 3000 })
+        }
+      } catch (err) {
+        toast.add({ severity: 'error', summary: 'Gagal', detail: err.message || 'Gagal menghapus gejala.', life: 3000 })
+      }
     }
-  } catch (err) {
-    showToast('error', err.message)
-  } finally {
-    submitting.value = false
-  }
+  })
 }
 
 onMounted(fetchGejala)
 </script>
 
 <style scoped>
-.modal-fade-enter-active, .modal-fade-leave-active { transition: opacity 0.25s ease-out; }
-.modal-fade-enter-from, .modal-fade-leave-to       { opacity: 0; }
 @keyframes modal-pop {
-  from { transform: scale(0.95); opacity: 0; }
+  from { transform: scale(0.98); opacity: 0; }
   to   { transform: scale(1);   opacity: 1; }
 }
-.animate-modal-pop { animation: modal-pop 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-.toast-list-enter-active { transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-.toast-list-leave-active { transition: all 0.2s ease-in; position: absolute; }
-.toast-list-enter-from   { transform: translateY(20px) scale(0.9); opacity: 0; }
-.toast-list-leave-to     { transform: translateX(100px); opacity: 0; }
+.animate-modal-pop {
+  animation: modal-pop 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+:deep(.p-datatable-header) {
+  background: transparent;
+  border: none;
+}
+:deep(.p-paginator) {
+  background: transparent;
+  border-top: 1px solid rgba(196, 198, 207, 0.3);
+  padding-top: 1rem;
+}
 </style>
