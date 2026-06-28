@@ -73,6 +73,9 @@
             <Settings class="w-5 h-5" />
           </button>
 
+          <!-- Theme Switch -->
+          <ThemeSwitch />
+
           <!-- Profile Dropdown -->
           <div class="relative">
             <button @click="profileMenuOpen = !profileMenuOpen; notificationMenuOpen = false" 
@@ -163,6 +166,7 @@ import Sidebar from '../../components/Sidebar.vue'
 import DashboardSummary from '@/components/dashboard/DashboardSummary.vue'
 import DashboardRecentDiagnosis from '@/components/dashboard/DashboardRecentDiagnosis.vue'
 import DashboardChart from '@/components/dashboard/DashboardChart.vue'
+import ThemeSwitch from '@/components/common/ThemeSwitch.vue'
 import { Menu, Search, Bell, Settings, Users, LogOut } from 'lucide-vue-next'
 
 const router = useRouter()

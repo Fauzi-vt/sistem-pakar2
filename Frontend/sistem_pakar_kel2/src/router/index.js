@@ -29,16 +29,42 @@ const routes = [
     component: () => import('../views/LandingPage.vue')
   },
   {
-    path: '/home',
-    name: 'UserHome',
-    component: () => import('../views/user/Home.vue'),
+    path: '/user/dashboard',
+    name: 'UserDashboard',
+    component: () => import('../views/user/UserDashboard.vue'),
     meta: { requiresAuth: true, role: 'user' }
   },
   {
-    path: '/diagnosa',
+    path: '/user/diagnosa',
     name: 'UserDiagnosa',
-    component: () => import('../views/user/Diagnosa.vue'),
+    component: () => import('../views/user/UserDiagnosa.vue'),
     meta: { requiresAuth: true, role: 'user' }
+  },
+  {
+    path: '/user/riwayat',
+    name: 'UserRiwayat',
+    component: () => import('../views/user/UserRiwayat.vue'),
+    meta: { requiresAuth: true, role: 'user' }
+  },
+  {
+    path: '/user/edukasi',
+    name: 'UserEdukasi',
+    component: () => import('../views/user/UserEdukasi.vue'),
+    meta: { requiresAuth: true, role: 'user' }
+  },
+  {
+    path: '/user/profil',
+    name: 'UserProfil',
+    component: () => import('../views/user/UserProfil.vue'),
+    meta: { requiresAuth: true, role: 'user' }
+  },
+  {
+    path: '/home',
+    redirect: '/user/dashboard'
+  },
+  {
+    path: '/diagnosa',
+    redirect: '/user/diagnosa'
   },
 
   // ─── Admin Routes ─────────────────────────────────────────────
@@ -97,13 +123,28 @@ const routes = [
     meta: { requiresAuth: true, role: 'admin' }
   },
 
-  // ─── Fallback ─────────────────────────────────────────────────
+  // ─── Fallback & Errors ─────────────────────────────────────────
+  {
+    path: '/403',
+    name: 'Forbidden',
+    component: () => import('../views/errors/Forbidden.vue')
+  },
+  {
+    path: '/500',
+    name: 'InternalServerError',
+    component: () => import('../views/errors/InternalServerError.vue')
+  },
+  {
+    path: '/user/:pathMatch(.*)*',
+    name: 'UserNotFound',
+    component: () => import('../views/user/UserNotFound.vue')
+  },
   {
     path: '/:pathMatch(.*)*',
     redirect: () => {
       const authStore = useAuthStore()
       if (authStore.isAuthenticated) {
-        return authStore.isAdmin ? '/admin/dashboard' : '/home'
+        return authStore.isAdmin ? '/admin/dashboard' : '/user/dashboard'
       }
       return '/login'
     }
@@ -126,7 +167,7 @@ router.beforeEach((to, from, next) => {
   // If a logged-in user lands on `/`, redirect them to their respective home/dashboard
   if (to.path === '/' && isAuthenticated) {
     NProgress.done()
-    return next(userRole === 'admin' ? '/admin/dashboard' : '/home')
+    return next(userRole === 'admin' ? '/admin/dashboard' : '/user/dashboard')
   }
 
   // Admin and Auth middleware pipeline

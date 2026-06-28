@@ -48,20 +48,22 @@
         <div v-if="logs.length === 0" class="p-4 text-center text-on-surface-variant italic">
           Belum ada log aktivitas sistem.
         </div>
-        <div v-else-for="log in logs" :key="log.message" 
-             class="p-2 flex items-start gap-3 hover:bg-surface-container-low rounded transition-colors">
-          <div class="p-1 rounded mt-1 shrink-0" :class="log.icon_cls">
-            <!-- Dynamically match icons with fallback -->
-            <Info v-if="log.icon === 'info' || log.icon === 'person'" class="w-4 h-4" />
-            <Activity v-else-if="log.icon === 'stethoscope'" class="w-4 h-4" />
-            <CheckCircle v-else class="w-4 h-4" />
+        <template v-else>
+          <div v-for="log in logs" :key="log.message" 
+               class="p-2 flex items-start gap-3 hover:bg-surface-container-low rounded transition-colors">
+            <div class="p-1 rounded mt-1 shrink-0" :class="log.icon_cls">
+              <!-- Dynamically match icons with fallback -->
+              <Info v-if="log.icon === 'info' || log.icon === 'person'" class="w-4 h-4" />
+              <Activity v-else-if="log.icon === 'stethoscope'" class="w-4 h-4" />
+              <CheckCircle v-else class="w-4 h-4" />
+            </div>
+            <div>
+              <div class="font-label-md text-primary font-bold">{{ log.title }}</div>
+              <div class="font-label-sm text-on-surface-variant leading-relaxed">{{ log.message }}</div>
+              <div class="font-label-sm text-outline mt-1 text-[10px]">{{ log.time }}</div>
+            </div>
           </div>
-          <div>
-            <div class="font-label-md text-primary font-bold">{{ log.title }}</div>
-            <div class="font-label-sm text-on-surface-variant leading-relaxed">{{ log.message }}</div>
-            <div class="font-label-sm text-outline mt-1 text-[10px]">{{ log.time }}</div>
-          </div>
-        </div>
+        </template>
       </div>
       <div class="p-stack-sm border-t border-outline-variant mt-auto">
         <button @click="$emit('view-audit')" 

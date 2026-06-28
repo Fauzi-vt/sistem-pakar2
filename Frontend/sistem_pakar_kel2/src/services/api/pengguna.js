@@ -9,5 +9,8 @@ export const penggunaApi = {
   },
   delete(id) {
     return httpClient.delete(`/api/users/${id}`)
+  },
+  updateProfile(id, data) {
+    return httpClient.put(`/api/users/${id}/profile`, data)
   }
 }

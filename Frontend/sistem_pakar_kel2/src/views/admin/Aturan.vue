@@ -16,7 +16,7 @@
           </button>
           <div>
             <h1 class="font-headline-sm text-headline-sm font-bold text-primary truncate leading-tight">Basis Pengetahuan</h1>
-            <p class="text-xs text-on-surface-variant hidden sm:block mt-0.5">Matriks relasi penyakit, gejala, dan bobot pakar (Certainty Factor).</p>
+            <p class="text-xs text-on-surface-variant hidden sm:block mt-0.5">Matriks relasi penyakit, gejala, dan bobot pakar (Probabilitas Teorema Bayes).</p>
           </div>
         </div>
 

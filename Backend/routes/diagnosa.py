@@ -43,7 +43,8 @@ import json
 import logging
 from typing import Optional, List
 
-from fastapi import APIRouter, HTTPException, status as http_status
+from fastapi import APIRouter, HTTPException, Depends, status as http_status
+from dependencies import get_current_user, require_role, UserModel
 from pydantic import BaseModel, Field
 from supabase import create_client, Client
 from dotenv import load_dotenv
@@ -369,7 +370,7 @@ def _run_teorema_bayes(
         "universitas. Hasil diagnosa otomatis disimpan ke tabel riwayat_diagnosa."
     ),
 )
-def run_diagnosa(payload: DiagnosaRequest) -> DiagnosaResponse:
+def run_diagnosa(payload: DiagnosaRequest, current_user: UserModel = Depends(require_role(['user', 'admin']))) -> DiagnosaResponse:
     """
     Teorema Bayes diagnosis endpoint.
 
@@ -438,7 +439,7 @@ def run_diagnosa(payload: DiagnosaRequest) -> DiagnosaResponse:
             )
 
         # -- 6. Save history (non-fatal) ---------------------------------------
-        riwayat_id = _save_riwayat(payload.user_id, unique_gejala_ids, hasil)
+        riwayat_id = _save_riwayat(current_user.id, unique_gejala_ids, hasil)
 
         # -- 7. Return result --------------------------------------------------
         top = hasil[0]

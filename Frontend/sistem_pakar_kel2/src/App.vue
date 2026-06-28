@@ -7,8 +7,24 @@
 </template>
 
 <script setup>
+import { onMounted, onUnmounted } from 'vue'
+import { useToast } from 'primevue/usetoast'
 import Toast from 'primevue/toast'
 import ConfirmDialog from 'primevue/confirmdialog'
+
+const toast = useToast()
+
+const handleGlobalError = (e) => {
+  toast.add({ severity: 'error', summary: 'Network Error', detail: e.detail, life: 5000 })
+}
+
+onMounted(() => {
+  window.addEventListener('global-error', handleGlobalError)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('global-error', handleGlobalError)
+})
 </script>
 
 <style>

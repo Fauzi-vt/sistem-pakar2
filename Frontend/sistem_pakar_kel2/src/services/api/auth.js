@@ -6,5 +6,8 @@ export const authApi = {
   },
   register(name, email, password) {
     return httpClient.post('/api/auth/register', { name, email, password })
+  },
+  changePassword(data) {
+    return httpClient.post('/api/auth/change-password', data)
   }
 }

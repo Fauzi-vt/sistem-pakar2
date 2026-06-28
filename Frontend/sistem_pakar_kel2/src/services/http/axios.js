@@ -75,6 +75,8 @@ httpClient.interceptors.response.use(
       errorMsg = error.response.data.detail || error.response.data.message || errorMsg
     } else if (error.message === 'Network Error') {
       errorMsg = 'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.'
+      // Dispatch event to show global toast
+      window.dispatchEvent(new CustomEvent('global-error', { detail: errorMsg }))
     }
     
     // Global Error Boundaries
@@ -83,7 +85,9 @@ httpClient.interceptors.response.use(
       localStorage.removeItem('sp_kel2_session')
       window.location.href = '/login'
     } else if (status === 403) {
-      errorMsg = 'Anda tidak memiliki hak akses untuk tindakan ini.'
+      window.location.href = '/403'
+    } else if (status === 500) {
+      window.location.href = '/500'
     }
     
     // Standardize error message throwing

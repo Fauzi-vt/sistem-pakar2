@@ -6,5 +6,8 @@ export const riwayatApi = {
   },
   delete(id) {
     return httpClient.delete(`/api/riwayat/${id}`)
+  },
+  getByUser(userId) {
+    return httpClient.get(`/api/riwayat/user/${userId}`)
   }
 }

@@ -16,7 +16,7 @@ P(H|E) = P(E|H) × P(H) / P(E)
 
 Keterangan:
 - **P(H)** — *Prior Probability*: Probabilitas awal suatu penyakit terjadi sebelum mempertimbangkan gejala.
-- **P(E|H)** — *Likelihood*: Probabilitas gejala muncul jika penyakit tersebut memang ada. Nilai ini diisi oleh pakar (dokter THT) sebagai **Certainty Factor** di basis aturan.
+- **P(E|H)** — *Likelihood*: Probabilitas gejala muncul jika penyakit tersebut memang ada. Nilai ini diisi oleh pakar (dokter THT) sebagai **Nilai Probabilitas** di basis aturan.
 - **P(E)** — Probabilitas marginal dari gejala, digunakan sebagai faktor normalisasi.
 - **P(H|E)** — *Posterior Probability*: Probabilitas suatu penyakit setelah mempertimbangkan gejala yang dipilih pasien. Inilah yang ditampilkan sebagai **Tingkat Keyakinan** pada hasil diagnosis.
 

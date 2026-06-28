@@ -1,48 +1,23 @@
 <template>
-  <div class="min-h-screen bg-[#f8f9ff] text-[#0b1c30] font-sans pt-20">
-    <!-- TopNavBar Component -->
-    <nav class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md shadow-sm border-b border-[#bcc9c6]/30 hidden md:block print:hidden">
-      <div class="flex justify-between items-center h-16 px-8 max-w-7xl mx-auto">
-        <div class="text-xl font-bold text-[#00685f] tracking-tight">
-          THT Expert System
-        </div>
-        <ul class="flex space-x-6 items-center h-full text-sm font-semibold">
-          <li class="h-full flex items-center">
-            <router-link to="/" class="text-[#3d4947] hover:text-[#00685f] transition-colors">
-              Beranda
-            </router-link>
-          </li>
-          <li class="h-full flex items-center">
-            <router-link to="/diagnosa" class="text-[#00685f] border-b-2 border-[#00685f] h-full flex items-center px-1">
-              Konsultasi
-            </router-link>
-          </li>
-          <li class="h-full flex items-center">
-            <template v-if="!isAuthenticated">
-              <router-link to="/login" class="text-[#3d4947] hover:text-[#00685f] transition-colors">
-                Login Admin
-              </router-link>
-            </template>
-            <template v-else>
-              <button @click="handleLogout" class="text-[#ba1a1a] hover:text-red-700 transition-colors cursor-pointer">
-                Keluar
-              </button>
-            </template>
-          </li>
-        </ul>
-      </div>
-    </nav>
+  <UserLayout>
+    <AppBreadcrumb :items="[{ label: 'Dashboard', to: '/user/dashboard' }, { label: 'Konsultasi' }]" />
+    
+    <FullScreenLoader 
+      :isVisible="isLoading" 
+      title="Memproses Diagnosa" 
+      message="Sistem sedang menghitung probabilitas berdasarkan gejala Anda..." 
+    />
 
     <!-- Main Content -->
-    <main class="max-w-3xl mx-auto px-6 py-12 md:py-16">
+    <div class="max-w-3xl mx-auto py-4">
       <Transition name="page-slide" mode="out-in">
         
         <!-- ════ STEP 1 — Symptom Selection ════ -->
         <div v-if="!diagnosaResult" key="step1">
-          <header class="mb-8 text-center md:text-left">
-            <h1 class="text-3xl font-bold text-[#0b1c30] mb-2">Checklist Gejala</h1>
-            <p class="text-sm text-[#3d4947]">Pilih gejala yang Anda alami untuk memulai asesmen THT awal menggunakan probabilitas Bayes.</p>
-          </header>
+          <PageHeader 
+            title="Checklist Gejala" 
+            description="Pilih gejala yang Anda alami untuk memulai asesmen THT awal menggunakan probabilitas Bayes." 
+          />
 
           <!-- Loading state -->
           <div v-if="loadingGejala" class="bg-white rounded-xl border border-[#bcc9c6]/30 p-12 text-center shadow-[0px_4px_20px_rgba(15,23,42,0.05)]">
@@ -240,37 +215,30 @@
         </div>
 
       </Transition>
-    </main>
-
-    <footer class="border-t border-[#bcc9c6]/30 py-6 bg-white text-center mt-12 print:hidden">
-      <p class="text-xs text-[#74777f]">© 2026 Sistem Pakar THT — Kelompok 2 · RS Jasa Kartini. All rights reserved.</p>
-    </footer>
-  </div>
+    </div>
+  </UserLayout>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
 import { useGejalaStore } from '@/stores/gejala.store'
 import { useDiagnosaStore } from '@/stores/diagnosa.store'
+import UserLayout from '@/layouts/UserLayout.vue'
+import AppBreadcrumb from '@/components/common/AppBreadcrumb.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
+import FullScreenLoader from '@/components/common/FullScreenLoader.vue'
 import { 
   ArrowRight, Stethoscope, FileText, HeartPulse, ListCollapse, 
   RotateCcw, Printer, Thermometer, Wind, Ear, Siren, Droplets, Info
 } from 'lucide-vue-next'
 
-const router = useRouter()
+
 const authStore = useAuthStore()
 const gejalaStore = useGejalaStore()
 const diagnosaStore = useDiagnosaStore()
 
-const isAuthenticated = computed(() => authStore.isAuthenticated)
-const userId          = computed(() => authStore.currentUser?.id || null)
-
-const handleLogout = () => {
-  authStore.logout()
-  router.push('/login')
-}
+const userId = computed(() => authStore.currentUser?.id || null)
 
 const gejalaList = computed(() => gejalaStore.gejalaList)
 const loadingGejala = computed(() => gejalaStore.loading)
