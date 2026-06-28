@@ -1,11 +1,14 @@
 <template>
   <div class="min-h-screen bg-slate-50 text-slate-800 antialiased font-sans flex flex-col">
     <router-view />
+    <Toast />
+    <ConfirmDialog />
   </div>
 </template>
 
 <script setup>
-// Root Component
+import Toast from 'primevue/toast'
+import ConfirmDialog from 'primevue/confirmdialog'
 </script>
 
 <style>
