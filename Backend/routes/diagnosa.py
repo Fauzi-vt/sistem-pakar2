@@ -4,25 +4,30 @@ diagnosa.py - Teorema Bayes Diagnosis Engine for Sistem Pakar THT
 
 Database Schema Reference:
   penyakit         : id (int), kode_penyakit, nama_penyakit, deskripsi, solusi,
-                     prior_probability (float), created_at
+                     prior_probability P(H) (float), created_at
   gejala           : id (int), kode_gejala, nama_gejala, created_at
   aturan           : id, penyakit_id (int), gejala_id (int),
-                     conditional_probability (float), created_at
+                     conditional_probability P(Ei|H) (float), created_at
   riwayat_diagnosa : id, user_id (uuid|null), gejala_terpilih (json),
                      hasil_diagnosa (json), created_at
 
-Algorithm (per disease):
-  Let nilai_gejala = [conditional_probability for each matched symptom]
+Algoritma Teorema Bayes (Bayes' Theorem) - multi-evidence:
 
-  Step 1 : semesta = sum(nilai_gejala)
-  Step 2 : phi     = [nilai / semesta for nilai in nilai_gejala]
-  Step 3 : total_h = sum(nilai_gejala[i] * phi[i] for i in range(n))
-                     (Probabilitas Evidence)
-  Step 4 : bayes   = sum( ((nilai_gejala[i] * phi[i]) / total_h) * nilai_gejala[i]
-                          for i in range(n) )
-           persentase = bayes * 100
+  Formula:
+    P(H|E₁, E₂, ..., Eₙ) = P(H) × ∏ P(Eᵢ|H) / P(E)
 
-Status mapping (based on raw bayes value 0.0-1.0):
+  Keterangan:
+    P(H)     = prior_probability penyakit H (kolom `prior_probability` di tabel penyakit).
+               Jika belum diset (NULL atau 0), gunakan prior seragam = 1 / total_penyakit.
+    P(Eᵢ|H) = conditional_probability gejala Eᵢ diberikan penyakit H
+               (kolom `conditional_probability` di tabel aturan, nilai pakar 0.0–1.0).
+               Hanya gejala yang dipilih pasien AND memiliki aturan untuk H yang dihitung.
+    P(E)     = faktor normalisasi = Σₖ [ P(Hₖ) × ∏ P(Eᵢ|Hₖ) ] untuk semua kandidat penyakit.
+    P(H|E)   = probabilitas posterior — nilai yang ditampilkan sebagai persentase keyakinan.
+
+  Asumsi: independence antara gejala diberikan penyakit (conditional independence).
+
+Status mapping (berdasarkan nilai posterior P(H|E) 0.0-1.0):
   <= 0.2 -> "Tidak Ada"
   <= 0.4 -> "Mungkin"
   <= 0.6 -> "Kemungkinan Besar"
@@ -79,13 +84,18 @@ class DiagnosaRequest(BaseModel):
 
 
 class CalculationDetail(BaseModel):
-    """Step-by-step breakdown of the Bayes calculation for one disease."""
+    """
+    Rincian langkah-langkah perhitungan Teorema Bayes untuk satu penyakit.
 
-    nilai_gejala: List[float]   # matched conditional_probability values
-    semesta: float              # Step 1 : sum of nilai_gejala
-    phi: List[float]            # Step 2 : normalised weights
-    total_h: float              # Step 3 : probabilitas evidence
-    bayes: float                # Step 4 : raw Bayes score (0.0 - 1.0)
+    Rumus: P(H|E₁,...,Eₙ) = [P(H) × ∏ P(Eᵢ|H)] / P(E)
+    """
+
+    nilai_gejala: List[float]       # P(Eᵢ|H): conditional probability tiap gejala yang cocok
+    prior: float                    # P(H): prior probability penyakit
+    likelihood_product: float       # ∏ P(Eᵢ|H): hasil kali semua conditional probability
+    unnormalized_posterior: float   # P(H) × ∏ P(Eᵢ|H): skor sebelum normalisasi
+    normalization_constant: float   # P(E): faktor normalisasi = Σ unnormalized semua kandidat
+    posterior: float                # P(H|E): probabilitas posterior final (0.0 – 1.0)
 
 
 class PenyakitHasil(BaseModel):
@@ -96,10 +106,10 @@ class PenyakitHasil(BaseModel):
     nama_penyakit: str
     deskripsi: Optional[str] = None
     solusi: Optional[str] = None
-    persentase: float           # bayes * 100, rounded to 4 dp
-    status: str                 # string interpretation of the bayes score
-    gejala_cocok: List[int]     # gejala_ids that matched this disease
-    detail: CalculationDetail   # full step-by-step breakdown
+    persentase: float           # posterior × 100, dibulatkan 4 desimal
+    status: str                 # interpretasi verbal dari nilai posterior
+    gejala_cocok: List[int]     # gejala_ids yang cocok dengan aturan penyakit ini
+    detail: CalculationDetail   # rincian langkah perhitungan Teorema Bayes
 
 
 class DiagnosaResponse(BaseModel):
@@ -116,9 +126,9 @@ class DiagnosaResponse(BaseModel):
 # HELPERS
 # =============================================================================
 
-def _get_status(bayes: float) -> str:
+def _get_status(posterior: float) -> str:
     """
-    Map a raw Bayes score (0.0 - 1.0) to a human-readable status string.
+    Petakan nilai posterior P(H|E) (0.0–1.0) ke label verbal diagnosis.
 
       <= 0.2  ->  "Tidak Ada"
       <= 0.4  ->  "Mungkin"
@@ -126,13 +136,13 @@ def _get_status(bayes: float) -> str:
       <  0.8  ->  "Hampir Pasti"
       >= 0.8  ->  "Pasti"
     """
-    if bayes <= 0.2:
+    if posterior <= 0.2:
         return "Tidak Ada"
-    if bayes <= 0.4:
+    if posterior <= 0.4:
         return "Mungkin"
-    if bayes <= 0.6:
+    if posterior <= 0.6:
         return "Kemungkinan Besar"
-    if bayes < 0.8:
+    if posterior < 0.8:
         return "Hampir Pasti"
     return "Pasti"
 
@@ -155,7 +165,7 @@ def _fetch_all_penyakit() -> list[dict]:
 def _fetch_aturan_for_gejala(gejala_ids: list[int]) -> list[dict]:
     """
     Return all rules whose gejala_id is in the selected list.
-    Each row: { penyakit_id, gejala_id, conditional_probability }
+    Each row: { penyakit_id, gejala_id, conditional_probability P(Ei|H) }
     """
     try:
         response = (
@@ -222,25 +232,28 @@ def _run_teorema_bayes(
     gejala_ids: List[int],
 ) -> List[PenyakitHasil]:
     """
-    Apply the university-specified Teorema Bayes algorithm for every disease.
+    Implementasi Teorema Bayes (Bayes' Theorem) untuk multi-evidence diagnosis.
 
-    For each disease:
-      1. Filter conditional_probability (Expert Values) from aturan where
-         gejala_id matches the user's input -> stored as nilai_gejala.
-      2. If len(nilai_gejala) > 0, apply the 4-step formula:
+    Formula:
+      P(H|E₁, E₂, ..., Eₙ) = [P(H) × ∏ P(Eᵢ|H)] / P(E)
 
-         semesta = sum(nilai_gejala)
-         phi     = [nilai / semesta for nilai in nilai_gejala]
-         total_h = sum(nilai_gejala[i] * phi[i] for i in range(n))
-         bayes   = sum(((nilai_gejala[i] * phi[i]) / total_h) * nilai_gejala[i]
-                       for i in range(n))
-         persentase = bayes * 100
+    Langkah-langkah:
+      1. Ambil P(H) dari kolom `prior_probability` tabel penyakit.
+         Jika NULL atau 0, gunakan prior seragam = 1 / total_penyakit.
+      2. Untuk setiap penyakit H:
+         a. Filter gejala yang dipilih pasien DAN memiliki aturan untuk H
+            → nilai_gejala = [P(Eᵢ|H) untuk setiap gejala yang cocok]
+         b. Hitung likelihood product: ∏ P(Eᵢ|H)
+         c. Hitung unnormalized posterior: P(H) × ∏ P(Eᵢ|H)
+      3. Faktor normalisasi P(E) = Σ semua unnormalized_posterior kandidat
+      4. Posterior final: P(H|E) = unnormalized_posterior / P(E)
 
-    Division-by-zero guards are applied at both semesta == 0 and total_h == 0.
-    Results are sorted descending by persentase before returning.
+    Hanya penyakit dengan minimal satu gejala yang cocok yang masuk sebagai kandidat.
+    Guard terhadap pembagian dengan nol diterapkan pada unnormalized == 0 dan P(E) == 0.
+    Hasil diurutkan descending berdasarkan persentase sebelum dikembalikan.
     """
 
-    # Build lookup: penyakit_id -> {gejala_id: conditional_probability}
+    # -- Build lookup: penyakit_id → {gejala_id: P(Eᵢ|H)} -------------------
     cond_map: dict[int, dict[int, float]] = {}
     for rule in aturan_list:
         pid = rule["penyakit_id"]
@@ -248,64 +261,90 @@ def _run_teorema_bayes(
         cp  = float(rule.get("conditional_probability", 0.0))
         cond_map.setdefault(pid, {})[gid] = cp
 
-    selected_set = set(gejala_ids)
-    results: List[PenyakitHasil] = []
+    # Prior seragam jika prior_probability belum diset
+    total_penyakit = len(penyakit_list)
+    uniform_prior  = 1.0 / total_penyakit if total_penyakit > 0 else 1.0
+
+    # -- Pass 1: hitung unnormalized posterior per penyakit kandidat ----------
+    candidates: list[dict] = []
 
     for p in penyakit_list:
-        pid = p["id"]
-
-        # Filter matching conditional probabilities for this disease
+        pid          = p["id"]
         gejala_rules = cond_map.get(pid, {})
         matched_ids  = [gid for gid in gejala_ids if gid in gejala_rules]
 
-        # Only process diseases that have at least one matching symptom rule
+        # Lewati penyakit tanpa satu pun gejala yang cocok
         if not matched_ids:
             continue
 
-        # nilai_gejala: list of expert conditional_probability for matched symptoms
+        # P(H): prior probability
+        prior = float(p.get("prior_probability") or 0.0)
+        if prior <= 0.0:
+            prior = uniform_prior
+
+        # P(Eᵢ|H) untuk setiap gejala yang cocok
         nilai_gejala: List[float] = [gejala_rules[gid] for gid in matched_ids]
-        n = len(nilai_gejala)
 
-        # -- Step 1: semesta (universe / total of expert values) ---------------
-        semesta = sum(nilai_gejala)
-        if semesta == 0.0:
-            logger.debug("Disease %s skipped: semesta == 0", pid)
+        # ∏ P(Eᵢ|H): hasil kali semua conditional probability
+        likelihood_product = 1.0
+        for cp in nilai_gejala:
+            likelihood_product *= cp
+
+        # P(H) × ∏ P(Eᵢ|H): unnormalized posterior
+        unnormalized = prior * likelihood_product
+
+        if unnormalized <= 0.0:
+            logger.debug("Penyakit %s dilewati: unnormalized posterior = 0", pid)
             continue
 
-        # -- Step 2: phi (normalised weight per symptom) -----------------------
-        phi = [nilai / semesta for nilai in nilai_gejala]
+        candidates.append({
+            "penyakit":           p,
+            "pid":                pid,
+            "matched_ids":        matched_ids,
+            "nilai_gejala":       nilai_gejala,
+            "prior":              prior,
+            "likelihood_product": likelihood_product,
+            "unnormalized":       unnormalized,
+        })
 
-        # -- Step 3: total_h (Probabilitas Evidence) ---------------------------
-        total_h = sum(nilai_gejala[i] * phi[i] for i in range(n))
-        if total_h == 0.0:
-            logger.debug("Disease %s skipped: total_h == 0", pid)
-            continue
+    if not candidates:
+        return []
 
-        # -- Step 4: bayes score -----------------------------------------------
-        bayes = sum(
-            ((nilai_gejala[i] * phi[i]) / total_h) * nilai_gejala[i]
-            for i in range(n)
+    # -- Pass 2: normalisasi P(E) = Σ unnormalized_posterior ------------------
+    normalization_constant = sum(c["unnormalized"] for c in candidates)
+
+    results: List[PenyakitHasil] = []
+
+    for c in candidates:
+        p = c["penyakit"]
+
+        # P(H|E) = unnormalized / P(E)
+        posterior = (
+            c["unnormalized"] / normalization_constant
+            if normalization_constant > 0.0
+            else 0.0
         )
 
-        persentase = round(bayes * 100, 4)
-        status     = _get_status(bayes)
+        persentase = round(posterior * 100, 4)
+        status     = _get_status(posterior)
 
         results.append(
             PenyakitHasil(
-                penyakit_id   = pid,
+                penyakit_id   = c["pid"],
                 kode_penyakit = p.get("kode_penyakit", ""),
                 nama_penyakit = p.get("nama_penyakit", ""),
                 deskripsi     = p.get("deskripsi"),
                 solusi        = p.get("solusi"),
                 persentase    = persentase,
                 status        = status,
-                gejala_cocok  = matched_ids,
+                gejala_cocok  = c["matched_ids"],
                 detail        = CalculationDetail(
-                    nilai_gejala = [round(v, 10) for v in nilai_gejala],
-                    semesta      = round(semesta, 10),
-                    phi          = [round(v, 10) for v in phi],
-                    total_h      = round(total_h, 10),
-                    bayes        = round(bayes, 10),
+                    nilai_gejala           = [round(v, 10) for v in c["nilai_gejala"]],
+                    prior                  = round(c["prior"], 10),
+                    likelihood_product     = round(c["likelihood_product"], 10),
+                    unnormalized_posterior = round(c["unnormalized"], 10),
+                    normalization_constant = round(normalization_constant, 10),
+                    posterior              = round(posterior, 10),
                 ),
             )
         )
