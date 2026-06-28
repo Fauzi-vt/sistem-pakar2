@@ -124,7 +124,6 @@
             </Transition>
           </div>
         </div>
-        </div>
       </header>
 
       <!-- Main Canvas -->
@@ -151,6 +150,7 @@
           />
         </div>
       </main>
+    </div>
   </div>
 </template>
 
@@ -261,12 +261,6 @@ const fetchStats = async () => {
     loading.value = false
   }
 }
-
-const openDetails = (row) => {
-  selectedRow.value = row
-  detailModalOpen.value = true
-}
-
 onMounted(fetchStats)
 </script>
 

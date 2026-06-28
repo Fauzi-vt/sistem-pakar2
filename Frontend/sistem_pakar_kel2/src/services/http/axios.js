@@ -2,7 +2,6 @@ import axios from 'axios'
 import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
 import { appConfig } from '@/config/app'
-import { authStore } from '@/stores/auth' // wait, when auth store is Pinia we will import the Pinia store inside hook or function
 
 // Configure NProgress
 NProgress.configure({ showSpinner: false })

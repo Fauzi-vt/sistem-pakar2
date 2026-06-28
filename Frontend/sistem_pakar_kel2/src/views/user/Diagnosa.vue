@@ -254,10 +254,9 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
 import { useGejalaStore } from '@/stores/gejala.store'
 import { useDiagnosaStore } from '@/stores/diagnosa.store'
-import Sidebar from '@/components/Sidebar.vue'
 import { 
   ArrowRight, Stethoscope, FileText, HeartPulse, ListCollapse, 
-  RotateCcw, Printer, Thermometer, Wind, Ear, Siren, Droplets, Info, Menu, Search
+  RotateCcw, Printer, Thermometer, Wind, Ear, Siren, Droplets, Info
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -291,7 +290,7 @@ const solutionsList = computed(() => {
     .split('\n')
     .map(s => s.trim())
     .filter(s => s.length > 0)
-    .map(s => s.replace(/^[-\*\u2022]\s*/, '')) // remove list bullet prefix
+    .map(s => s.replace(/^[-*\u2022]\s*/, '')) // remove list bullet prefix
 })
 
 const getSymptomDescription = (name) => {

@@ -214,7 +214,6 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 const isAuthenticated = computed(() => authStore.isAuthenticated)
-const userName        = computed(() => authStore.currentUser?.name || 'Pasien')
 const userId          = computed(() => authStore.currentUser?.id || null)
 
 const riwayatList      = ref([])

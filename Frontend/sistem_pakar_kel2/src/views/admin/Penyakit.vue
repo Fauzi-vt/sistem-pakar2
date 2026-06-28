@@ -351,7 +351,7 @@ const generateAISuggestion = () => {
     return
   }
 
-  let suggestion = ''
+  let suggestion
   if (targetNama.includes('otitis')) {
     suggestion = 'Jaga telinga tetap kering, hindari berenang sementara waktu, jangan bersihkan telinga menggunakan cotton bud, dan gunakan obat tetes telinga yang mengandung antibiotik/kortikosteroid sesuai resep.'
   } else if (targetNama.includes('sinusitis')) {

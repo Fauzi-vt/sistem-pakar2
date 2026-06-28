@@ -13,7 +13,7 @@ async function request(path, options = {}) {
     if (!response.ok) throw new Error(data.detail || 'Terjadi kesalahan sistem.')
     return data
   } catch (error) {
-    throw new Error(error.message || 'Tidak dapat terhubung ke server backend.')
+    throw new Error(error.message || 'Tidak dapat terhubung ke server backend.', { cause: error })
   }
 }
 
