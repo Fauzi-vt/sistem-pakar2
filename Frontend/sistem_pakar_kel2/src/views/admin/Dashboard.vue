@@ -383,11 +383,12 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { authStore } from '../../stores/auth.js'
+import { useAuthStore } from '@/stores/auth.store'
 import { api } from '../../services/api.js'
 import Sidebar from '../../components/Sidebar.vue'
 
 const router = useRouter()
+const authStore            = useAuthStore()
 const sidebarOpen          = ref(false)
 const loading              = ref(true)
 const diagnoses            = ref([])

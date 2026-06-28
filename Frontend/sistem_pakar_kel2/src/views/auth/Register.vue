@@ -13,7 +13,7 @@
         <!-- Floating Brand Element -->
         <div class="relative z-20 flex flex-col items-center justify-center p-12 text-center text-white">
           <div class="w-16 h-16 bg-white rounded-xl flex items-center justify-center shadow-lg mb-6">
-            <span class="material-symbols-outlined icon-fill text-[#002045] text-4xl">medical_services</span>
+            <Stethoscope class="text-[#002045] w-10 h-10" />
           </div>
           <h2 class="font-bold text-3xl mb-4 text-white">ENT Expert System</h2>
           <p class="text-lg text-[#adc7f7] max-w-md">
@@ -26,14 +26,14 @@
       <div class="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 xl:p-24 bg-[#f8f9ff] relative">
         <!-- Close Button to Landing Page -->
         <router-link to="/" class="absolute top-8 right-8 flex items-center justify-center w-9 h-9 rounded-full bg-white hover:bg-surface-container border border-outline-variant/60 text-on-surface-variant hover:text-on-surface transition-all cursor-pointer shadow-sm active:scale-95" title="Kembali ke Beranda">
-          <span class="material-symbols-outlined text-[20px]">close</span>
+          <X class="w-5 h-5" />
         </router-link>
         <div class="w-full max-w-md flex flex-col gap-8">
           
           <!-- Mobile Brand Header (Visible only on mobile/tablet) -->
           <div class="flex lg:hidden items-center gap-3 mb-4">
             <div class="w-10 h-10 bg-[#002045] text-white rounded flex items-center justify-center shadow-sm">
-              <span class="material-symbols-outlined icon-fill text-xl">medical_services</span>
+              <Stethoscope class="w-6 h-6 text-white" />
             </div>
             <span class="font-bold text-lg text-[#002045]">ENT Expert System</span>
           </div>
@@ -76,16 +76,16 @@
               </label>
               <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#74777f]">
-                  <span class="material-symbols-outlined">person</span>
+                  <User class="w-5 h-5" />
                 </div>
                 <input class="w-full pl-10 pr-4 py-3 bg-white border border-[#c4c6cf] rounded text-[#0d1c2e] focus:outline-none focus:border-[#13696a] focus:ring-1 focus:ring-[#13696a] transition-colors" 
                        id="fullName" 
                        name="fullName" 
                        placeholder="John Doe" 
-                       required 
-                       v-model="formData.name"
+                       v-model="name"
                        type="text"/>
               </div>
+              <p v-if="errors.name" class="text-xs text-[#ba1a1a] mt-1">{{ errors.name }}</p>
             </div>
 
             <!-- Email Address -->
@@ -95,16 +95,16 @@
               </label>
               <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#74777f]">
-                  <span class="material-symbols-outlined">mail</span>
+                  <Mail class="w-5 h-5" />
                 </div>
                 <input class="w-full pl-10 pr-4 py-3 bg-white border border-[#c4c6cf] rounded text-[#0d1c2e] focus:outline-none focus:border-[#13696a] focus:ring-1 focus:ring-[#13696a] transition-colors" 
                        id="email" 
                        name="email" 
                        placeholder="name@example.com" 
-                       required 
-                       v-model="formData.email"
+                       v-model="email"
                        type="email"/>
               </div>
+              <p v-if="errors.email" class="text-xs text-[#ba1a1a] mt-1">{{ errors.email }}</p>
             </div>
 
             <!-- Password -->
@@ -114,21 +114,22 @@
               </label>
               <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#74777f]">
-                  <span class="material-symbols-outlined">lock</span>
+                  <Lock class="w-5 h-5" />
                 </div>
                 <input class="w-full pl-10 pr-10 py-3 bg-white border border-[#c4c6cf] rounded text-[#0d1c2e] focus:outline-none focus:border-[#13696a] focus:ring-1 focus:ring-[#13696a] transition-colors" 
                        id="password" 
                        name="password" 
                        placeholder="••••••••" 
-                       required 
-                       v-model="formData.password"
+                       v-model="password"
                        :type="showPassword ? 'text' : 'password'"/>
                 <button class="absolute inset-y-0 right-0 pr-3 flex items-center text-[#74777f] hover:text-[#43474e]" 
                         type="button"
                         @click="showPassword = !showPassword">
-                  <span class="material-symbols-outlined">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
+                  <EyeOff v-if="showPassword" class="w-5 h-5" />
+                  <Eye v-else class="w-5 h-5" />
                 </button>
               </div>
+              <p v-if="errors.password" class="text-xs text-[#ba1a1a] mt-1">{{ errors.password }}</p>
             </div>
 
             <!-- Confirm Password -->
@@ -138,16 +139,16 @@
               </label>
               <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#74777f]">
-                  <span class="material-symbols-outlined">lock_reset</span>
+                  <LockKeyhole class="w-5 h-5" />
                 </div>
                 <input class="w-full pl-10 pr-10 py-3 bg-white border border-[#c4c6cf] rounded text-[#0d1c2e] focus:outline-none focus:border-[#13696a] focus:ring-1 focus:ring-[#13696a] transition-colors" 
                        id="confirmPassword" 
                        name="confirmPassword" 
                        placeholder="••••••••" 
-                       required 
-                       v-model="formData.confirm"
+                       v-model="confirm"
                        type="password"/>
               </div>
+              <p v-if="errors.confirm" class="text-xs text-[#ba1a1a] mt-1">{{ errors.confirm }}</p>
             </div>
 
             <!-- Terms Checkbox -->
@@ -156,7 +157,6 @@
                 <input class="w-4 h-4 text-[#13696a] bg-white border-[#c4c6cf] rounded focus:ring-[#13696a] focus:ring-2 cursor-pointer" 
                        id="terms" 
                        name="terms" 
-                       required 
                        v-model="agreeTerms"
                        type="checkbox"/>
               </div>
@@ -166,6 +166,7 @@
                 </label>
               </div>
             </div>
+            <p v-if="errors.agreeTerms" class="text-xs text-[#ba1a1a] mt-1">{{ errors.agreeTerms }}</p>
 
             <!-- Submit Action -->
             <div class="pt-4">
@@ -195,35 +196,54 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { authStore } from '../../stores/auth.js'
+import { useAuthStore } from '@/stores/auth.store'
+import { useForm } from 'vee-validate'
+import { registerSchema } from '@/schemas/register.schema'
+import { Stethoscope, X, User, Mail, Lock, LockKeyhole, Eye, EyeOff } from 'lucide-vue-next'
 
 const router = useRouter()
+const authStore = useAuthStore()
 const errorMessage = ref('')
 const isLoading    = ref(false)
 const isSuccess    = ref(false)
 const showPassword = ref(false)
-const agreeTerms   = ref(false)
 
-const formData = reactive({ name: '', email: '', password: '', confirm: '' })
+const { handleSubmit, errors, defineField } = useForm({
+  validationSchema: registerSchema,
+  initialValues: {
+    name: '',
+    email: '',
+    password: '',
+    confirm: '',
+    agreeTerms: false
+  }
+})
 
-const handleRegister = async () => {
+const [name] = defineField('name')
+const [email] = defineField('email')
+const [password] = defineField('password')
+const [confirm] = defineField('confirm')
+const [agreeTerms] = defineField('agreeTerms')
+
+const handleRegister = handleSubmit(async (values) => {
   errorMessage.value = ''
-  if (!agreeTerms.value) { errorMessage.value = 'Anda harus menyetujui Syarat dan Ketentuan.'; return }
-  if (formData.password.length < 6) { errorMessage.value = 'Kata sandi harus minimal 6 karakter.'; return }
-  if (formData.password !== formData.confirm) { errorMessage.value = 'Konfirmasi kata sandi tidak cocok.'; return }
   isLoading.value = true
   try {
-    const result = await authStore.register(formData.name, formData.email, formData.password)
+    const result = await authStore.register(values.name, values.email, values.password)
     isLoading.value = false
-    if (result.success) { isSuccess.value = true; setTimeout(() => router.push('/login'), 1500) }
-    else errorMessage.value = result.error
-  } catch {
+    if (result.success) {
+      isSuccess.value = true
+      setTimeout(() => router.push('/login'), 1500)
+    } else {
+      errorMessage.value = result.error
+    }
+  } catch (err) {
     isLoading.value = false
-    errorMessage.value = 'Terjadi kesalahan saat mendaftar.'
+    errorMessage.value = err.message || 'Terjadi kesalahan saat mendaftar.'
   }
-}
+})
 </script>
 
 <style scoped>

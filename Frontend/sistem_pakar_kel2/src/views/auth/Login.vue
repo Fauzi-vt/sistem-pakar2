@@ -15,7 +15,7 @@
         <div class="absolute inset-0 bg-[#002045]/20 z-10"></div>
         <!-- Brand Badge -->
         <div class="absolute top-8 left-8 z-20 flex items-center gap-2 bg-white/80 backdrop-blur-md px-4 py-2 rounded-lg border border-[#c4c6cf]/30">
-          <span class="material-symbols-outlined text-[#13696a] text-2xl">medical_services</span>
+          <Stethoscope class="text-[#13696a] w-6 h-6" />
           <span class="font-bold text-lg text-[#002045]">ENT Expert System</span>
         </div>
         <!-- Motivational Quote / Proposition -->
@@ -29,11 +29,11 @@
       <div class="w-full lg:w-1/2 flex items-center justify-center p-8 relative">
         <!-- Close Button to Landing Page -->
         <router-link to="/" class="absolute top-8 right-8 flex items-center justify-center w-9 h-9 rounded-full bg-white hover:bg-surface-container border border-outline-variant/60 text-on-surface-variant hover:text-on-surface transition-all cursor-pointer shadow-sm active:scale-95" title="Kembali ke Beranda">
-          <span class="material-symbols-outlined text-[20px]">close</span>
+          <X class="w-5 h-5" />
         </router-link>
         <!-- Mobile Brand Header (Visible only on small screens) -->
         <div class="absolute top-8 left-8 lg:hidden flex items-center gap-2">
-          <span class="material-symbols-outlined text-[#13696a] text-2xl">medical_services</span>
+          <Stethoscope class="text-[#13696a] w-6 h-6" />
           <span class="font-bold text-lg text-[#002045]">ENT Expert</span>
         </div>
 
@@ -59,16 +59,16 @@
               <label class="text-xs font-semibold text-[#002045]" for="identifier">Email / Nama Pengguna</label>
               <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span class="material-symbols-outlined text-[#74777f] text-lg">person</span>
+                  <User class="text-[#74777f] w-5 h-5" />
                 </div>
                 <input class="input-clinical w-full pl-10 pr-4 py-2 bg-white border border-[#c4c6cf] rounded-lg text-[#0d1c2e] text-sm focus:outline-none focus:ring-0"
                        id="identifier"
                        name="identifier"
                        placeholder="dr.nama@klinik.com"
-                       required
                        v-model="email"
                        type="text"/>
               </div>
+              <p v-if="errors.email" class="text-xs text-[#ba1a1a] mt-1">{{ errors.email }}</p>
             </div>
 
             <!-- Password Field -->
@@ -79,21 +79,22 @@
               </div>
               <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span class="material-symbols-outlined text-[#74777f] text-lg">lock</span>
+                  <Lock class="text-[#74777f] w-5 h-5" />
                 </div>
                 <input class="input-clinical w-full pl-10 pr-10 py-2 bg-white border border-[#c4c6cf] rounded-lg text-[#0d1c2e] text-sm focus:outline-none focus:ring-0"
                        id="password"
                        name="password"
                        placeholder="••••••••"
-                       required
                        v-model="password"
                        :type="showPassword ? 'text' : 'password'"/>
                 <button class="absolute inset-y-0 right-0 pr-3 flex items-center text-[#74777f] hover:text-[#43474e] transition-colors"
                         type="button"
                         @click="showPassword = !showPassword">
-                  <span class="material-symbols-outlined text-lg">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
+                  <EyeOff v-if="showPassword" class="w-5 h-5" />
+                  <Eye v-else class="w-5 h-5" />
                 </button>
               </div>
+              <p v-if="errors.password" class="text-xs text-[#ba1a1a] mt-1">{{ errors.password }}</p>
             </div>
 
             <!-- Remember Me -->
@@ -115,7 +116,7 @@
                       :disabled="isLoading">
                 <span v-if="isLoading" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></span>
                 <span>Masuk</span>
-                <span class="material-symbols-outlined ml-2 text-lg">login</span>
+                <LogIn class="ml-2 w-5 h-5" />
               </button>
             </div>
           </form>
@@ -147,32 +148,41 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { authStore } from '../../stores/auth.js'
+import { useAuthStore } from '@/stores/auth.store'
+import { useForm } from 'vee-validate'
+import { loginSchema } from '@/schemas/login.schema'
+import { Stethoscope, X, User, Lock, Eye, EyeOff, LogIn } from 'lucide-vue-next'
 
 const router = useRouter()
-const email        = ref('')
-const password     = ref('')
+const authStore = useAuthStore()
 const errorMessage = ref('')
 const isLoading    = ref(false)
 const showPassword = ref(false)
 const rememberMe   = ref(false)
 
-const handleLogin = async () => {
+const { handleSubmit, errors, defineField } = useForm({
+  validationSchema: loginSchema
+})
+
+const [email] = defineField('email')
+const [password] = defineField('password')
+
+const handleLogin = handleSubmit(async (values) => {
   errorMessage.value = ''
   isLoading.value    = true
   try {
-    const result = await authStore.login(email.value, password.value)
+    const result = await authStore.login(values.email, values.password)
     isLoading.value = false
     if (result.success) {
       router.push(result.user.role === 'admin' ? '/admin/dashboard' : '/')
     } else {
       errorMessage.value = result.error
     }
-  } catch {
+  } catch (err) {
     isLoading.value    = false
-    errorMessage.value = 'Terjadi kesalahan sistem.'
+    errorMessage.value = err.message || 'Terjadi kesalahan sistem.'
   }
-}
+})
 </script>
 
 <style scoped>

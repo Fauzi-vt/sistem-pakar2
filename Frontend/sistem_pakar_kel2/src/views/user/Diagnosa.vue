@@ -253,9 +253,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { api } from '../../services/api.js'
-import { authStore } from '../../stores/auth.js'
+import { useAuthStore } from '@/stores/auth.store'
 
 const router = useRouter()
+const authStore = useAuthStore()
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 const userId          = computed(() => authStore.currentUser?.id || null)
 

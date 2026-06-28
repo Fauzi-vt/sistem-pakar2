@@ -78,12 +78,13 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
-import { authStore } from '../stores/auth.js'
+import { useAuthStore } from '@/stores/auth.store'
 
 defineProps({ isOpen: { type: Boolean, default: false } })
 defineEmits(['update:isOpen'])
 
 const router = useRouter()
+const authStore = useAuthStore()
 const handleLogout = () => { authStore.logout(); router.push('/login') }
 
 const startNewAssessment = () => {
