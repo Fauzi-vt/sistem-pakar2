@@ -39,7 +39,7 @@
             </h1>
             
             <p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
-              Diagnosis cerdas berbasis Naive Bayes untuk mendukung keputusan klinis yang cepat dan akurat. Dirancang khusus untuk efisiensi praktik dokter spesialis THT.
+              Diagnosis cerdas menggunakan Teorema Bayes untuk mendukung keputusan klinis yang cepat dan akurat. Dirancang khusus untuk efisiensi praktik dokter spesialis THT.
             </p>
             
             <div class="flex flex-wrap gap-4 mt-2">
@@ -96,7 +96,7 @@
               </div>
               <div class="mb-2 text-primary font-bold text-sm">Langkah 2</div>
               <h3 class="font-headline-sm text-lg font-bold mb-2">Analisis Sistem</h3>
-              <p class="font-body-sm text-body-sm text-on-surface-variant">Algoritma Naive Bayes kami memproses input Anda terhadap basis pengetahuan medis yang luas secara real-time.</p>
+              <p class="font-body-sm text-body-sm text-on-surface-variant">Mesin inferensi Teorema Bayes memproses input Anda terhadap basis pengetahuan medis yang luas secara real-time, menghitung probabilitas posterior setiap penyakit.</p>
             </div>
             
             <!-- Step 3 -->

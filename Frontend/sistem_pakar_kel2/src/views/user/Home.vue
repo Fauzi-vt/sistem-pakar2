@@ -40,7 +40,7 @@
             Sistem Pakar Diagnosa Penyakit THT
           </h1>
           <p class="text-lg text-[#3d4947] leading-relaxed">
-            Diagnosa cerdas berbasis Naive Bayes untuk keputusan klinis cepat, akurat, dan terpercaya.
+            Diagnosa cerdas menggunakan Teorema Bayes untuk keputusan klinis cepat, akurat, dan terpercaya.
           </p>
           <div class="pt-4">
             <button @click="goToDiagnosa" 
@@ -67,7 +67,7 @@
             <span class="material-symbols-outlined icon-fill">speed</span>
           </div>
           <h3 class="font-bold text-lg text-[#0b1c30] mb-2">Analisis Cepat</h3>
-          <p class="text-xs leading-relaxed text-[#3d4947]">Hasil diagnosa instan berdasarkan algoritma probabilitas Naive Bayes.</p>
+          <p class="text-xs leading-relaxed text-[#3d4947]">Hasil diagnosa instan menggunakan perhitungan probabilitas posterior Teorema Bayes.</p>
         </div>
         
         <div class="bg-white rounded-xl p-6 border border-[#bcc9c6]/30 hover:shadow-md transition-shadow">

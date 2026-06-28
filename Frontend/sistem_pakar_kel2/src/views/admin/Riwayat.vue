@@ -87,7 +87,7 @@
                 </div>
               </template>
             </Column>
-            <Column field="probability" header="Nilai Bayes" :sortable="true" style="width: 140px">
+            <Column field="probability" header="Probabilitas Posterior" :sortable="true" style="width: 180px">
               <template #body="slotProps">
                 <span class="px-2.5 py-1 rounded-full text-xs font-bold border font-mono inline-block" 
                       :class="getBadgeCls(slotProps.data.probability)">

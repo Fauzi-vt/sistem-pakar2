@@ -66,7 +66,7 @@
           <div class="bg-background rounded border border-outline-variant/60 p-4 font-mono text-xs text-on-surface space-y-2 h-72 overflow-y-auto">
             <div class="flex gap-4"><span class="text-secondary shrink-0">[16:52:10]</span><span class="text-primary font-semibold">INFO:</span><span>Database connection check successful. (0 errors)</span></div>
             <div class="flex gap-4"><span class="text-secondary shrink-0">[16:47:04]</span><span class="text-primary font-semibold">INFO:</span><span>Seed script master data initialized check done.</span></div>
-            <div class="flex gap-4"><span class="text-secondary shrink-0">[16:44:56]</span><span class="text-primary font-semibold">INFO:</span><span>Aturan probability conditional Naive Bayes sync triggered.</span></div>
+            <div class="flex gap-4"><span class="text-secondary shrink-0">[16:44:56]</span><span class="text-primary font-semibold">INFO:</span><span>Aturan probabilitas kondisional Teorema Bayes sync triggered.</span></div>
             <div class="flex gap-4"><span class="text-secondary shrink-0">[16:12:35]</span><span class="text-primary font-semibold">INFO:</span><span>Supabase client connection created successfully.</span></div>
             <div class="flex gap-4"><span class="text-secondary shrink-0">[15:30:12]</span><span class="text-primary font-semibold">INFO:</span><span>FastAPI engine reload completed. Server running on port 8000.</span></div>
           </div>
