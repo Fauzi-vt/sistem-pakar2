@@ -30,8 +30,8 @@ onMounted(() => {
   if (savedTheme) {
     isDark.value = savedTheme === 'dark'
   } else {
-    // Check system preference
-    isDark.value = window.matchMedia('(prefers-color-scheme: dark)').matches
+    // Default to light mode
+    isDark.value = false
   }
 
   if (isDark.value) {

@@ -10,7 +10,7 @@ export default {
         preset: Aura,
         options: {
           prefix: 'p',
-          darkModeSelector: '.dark',
+          darkModeSelector: 'none',
           cssLayer: false
         }
       }
