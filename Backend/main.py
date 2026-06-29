@@ -787,6 +787,16 @@ def get_all_riwayat(current_admin: UserModel = Depends(require_role(['admin'])))
             .order("tanggal", desc=True)
             .execute()
         )
+
+        # Fetch all gejala names once to resolve IDs -> names
+        gejala_map: dict = {}
+        try:
+            gejala_res = supabase.table("gejala").select("id, nama_gejala").execute()
+            for g in (gejala_res.data or []):
+                gejala_map[g["id"]] = g["nama_gejala"]
+        except Exception:
+            pass
+
         formatted = []
         for row in (res.data or []):
             gejala_ids = row.get("gejala_terpilih") or []
@@ -801,13 +811,15 @@ def get_all_riwayat(current_admin: UserModel = Depends(require_role(['admin'])))
                     hasil = json.loads(hasil)
                 except:
                     hasil = []
-            
+
             top_diagnosis = "Tidak Ada"
             top_percentage = 0.0
+            top_solusi = ""
             if hasil and len(hasil) > 0:
                 top_diagnosis = hasil[0].get("nama_penyakit", "Tidak Ada")
                 top_percentage = hasil[0].get("persentase", 0.0)
-            
+                top_solusi = hasil[0].get("solusi", "")
+
             profile = row.get("profiles")
             name = "Pasien Anonim"
             if profile:
@@ -815,15 +827,22 @@ def get_all_riwayat(current_admin: UserModel = Depends(require_role(['admin'])))
                     name = profile.get("name")
                 elif isinstance(profile, list) and len(profile) > 0 and profile[0].get("name"):
                     name = profile[0].get("name")
-                    
+
+            gejala_nama = ", ".join(
+                gejala_map.get(gid, str(gid)) for gid in gejala_ids
+            ) if gejala_ids else "-"
+
             formatted.append({
                 "id": row.get("id"),
                 "name": name,
                 "diagnosis": top_diagnosis,
+                "probability": round(top_percentage / 100, 4),  # 0-1 for badge coloring
                 "percentage": top_percentage,
                 "symptoms_count": len(gejala_ids),
+                "gejala_ids": gejala_ids,
+                "gejala_nama": gejala_nama,
+                "solusi": top_solusi,
                 "tanggal": row.get("tanggal"),
-                "gejala_ids": gejala_ids
             })
         return {"success": True, "data": formatted}
     except Exception as e:
@@ -836,11 +855,21 @@ def get_riwayat_by_user(user_id: str, current_user: UserModel = Depends(require_
     try:
         res = (
             supabase.table("riwayat_diagnosa")
-            .select("id, user_id, hasil_diagnosa, gejala_terpilih, tanggal, deskripsi, solusi")
+            .select("id, user_id, hasil_diagnosa, gejala_terpilih, tanggal")
             .eq("user_id", user_id)
             .order("tanggal", desc=True)
             .execute()
         )
+
+        # Fetch all gejala names once to resolve IDs -> names
+        gejala_map: dict = {}
+        try:
+            gejala_res = supabase.table("gejala").select("id, nama_gejala").execute()
+            for g in (gejala_res.data or []):
+                gejala_map[g["id"]] = g["nama_gejala"]
+        except Exception:
+            pass
+
         formatted = []
         for row in (res.data or []):
             gejala_ids = row.get("gejala_terpilih") or []
@@ -855,17 +884,20 @@ def get_riwayat_by_user(user_id: str, current_user: UserModel = Depends(require_
                     hasil = json.loads(hasil)
                 except:
                     hasil = []
-            
+
             top_diagnosis = "Tidak Ada"
             top_percentage = 0.0
+            top_deskripsi = ""
+            top_solusi = ""
             if hasil and len(hasil) > 0:
                 top_diagnosis = hasil[0].get("nama_penyakit", "Tidak Ada")
                 top_percentage = hasil[0].get("persentase", 0.0)
-                    
-            # For displaying symptoms string
-            # Normally we should query the gejala table to map IDs to names,
-            # but we can just return the raw IDs or mock it for frontend
-            symptoms_str = ", ".join([str(g) for g in gejala_ids])
+                top_deskripsi = hasil[0].get("deskripsi", "")
+                top_solusi = hasil[0].get("solusi", "")
+
+            gejala_nama = ", ".join(
+                gejala_map.get(gid, str(gid)) for gid in gejala_ids
+            ) if gejala_ids else "-"
 
             formatted.append({
                 "id": row.get("id"),
@@ -874,13 +906,14 @@ def get_riwayat_by_user(user_id: str, current_user: UserModel = Depends(require_
                 "percentage": top_percentage,
                 "persentase": top_percentage,
                 "tanggal": row.get("tanggal"),
-                "gejala": symptoms_str,
-                "deskripsi": row.get("deskripsi") or "",
-                "solusi": row.get("solusi") or ""
+                "gejala": gejala_nama,
+                "deskripsi": top_deskripsi,
+                "solusi": top_solusi,
             })
         return {"success": True, "data": formatted}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 
 @app.delete("/api/riwayat/{riwayat_id}")

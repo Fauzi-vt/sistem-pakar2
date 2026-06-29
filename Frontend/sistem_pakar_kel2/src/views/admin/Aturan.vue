@@ -97,7 +97,7 @@
                 </div>
               </template>
             </Column>
-            <Column field="probability" header="Bobot Pakar (CF)" :sortable="true" style="width: 180px">
+            <Column field="probability" header="Bobot Pakar (P(E|H))" :sortable="true" style="width: 200px">
               <template #body="slotProps">
                 <span class="font-mono font-bold text-secondary">
                   {{ slotProps.data.probability.toFixed(2) }}
@@ -181,7 +181,7 @@
 
             <!-- Bobot Pakar -->
             <div>
-              <label class="block font-bold text-xs uppercase tracking-wider mb-1.5 text-on-surface-variant">Bobot Pakar / Probabilitas Kondisional (CF) <span class="text-error">*</span></label>
+              <label class="block font-bold text-xs uppercase tracking-wider mb-1.5 text-on-surface-variant">Bobot Pakar / Probabilitas Kondisional (P(E|H)) <span class="text-error">*</span></label>
               <input
                 v-model="conditional_probability"
                 type="number"
@@ -380,7 +380,7 @@ const exportToCSV = () => {
     toast.add({ severity: 'error', summary: 'Ekspor Gagal', detail: 'Tidak ada data relasi untuk diekspor.', life: 3000 })
     return
   }
-  const headers = ['ID Relasi', 'Penyakit (Hipotesis)', 'Gejala (Evidence)', 'Bobot Pakar (CF)']
+  const headers = ['ID Relasi', 'Penyakit (Hipotesis)', 'Gejala (Evidence)', 'Bobot Pakar (P(E|H))']
   const rows = filteredRules.value.map(row => [
     `R-${row.penyakit_kode}-${row.gejala_kode}`,
     `[${row.penyakit_kode}] ${row.penyakit_nama}`,

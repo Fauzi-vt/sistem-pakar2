@@ -82,16 +82,16 @@
             </Column>
             <Column header="Gejala Terpilih">
               <template #body="slotProps">
-                <div class="line-clamp-2 text-on-surface-variant leading-relaxed">
+                <div class="line-clamp-2 text-on-surface-variant leading-relaxed text-xs">
                   {{ slotProps.data.gejala_nama || '-' }}
                 </div>
               </template>
             </Column>
-            <Column field="probability" header="Probabilitas Posterior" :sortable="true" style="width: 180px">
+            <Column field="probability" header="Probabilitas Posterior" :sortable="true" style="width: 190px">
               <template #body="slotProps">
                 <span class="px-2.5 py-1 rounded-full text-xs font-bold border font-mono inline-block" 
                       :class="getBadgeCls(slotProps.data.probability)">
-                  {{ (slotProps.data.probability * 100).toFixed(0) }}%
+                  {{ slotProps.data.percentage?.toFixed(1) ?? '0.0' }}%
                 </span>
               </template>
             </Column>
@@ -153,7 +153,7 @@
                 <span class="font-bold text-primary text-base">{{ selectedItem.diagnosis }}</span>
                 <span class="px-2.5 py-0.5 rounded-full text-xs font-bold border font-mono" 
                       :class="getBadgeCls(selectedItem.probability)">
-                  {{ (selectedItem.probability * 100).toFixed(0) }}%
+                  {{ selectedItem.percentage?.toFixed(1) ?? '0.0' }}%
                 </span>
               </div>
             </div>
@@ -200,8 +200,10 @@ const selectedItem = ref(null)
 const filteredRiwayat = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
   if (!q) return riwayatList.value
-  return riwayatList.value.filter(r => 
-    r.name.toLowerCase().includes(q) || r.diagnosis.toLowerCase().includes(q)
+  return riwayatList.value.filter(r =>
+    (r.name || '').toLowerCase().includes(q) ||
+    (r.diagnosis || '').toLowerCase().includes(q) ||
+    (r.gejala_nama || '').toLowerCase().includes(q)
   )
 })
 

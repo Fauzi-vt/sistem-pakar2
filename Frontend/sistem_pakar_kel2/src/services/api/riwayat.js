@@ -9,5 +9,9 @@ export const riwayatApi = {
   },
   getByUser(userId) {
     return httpClient.get(`/api/riwayat/user/${userId}`)
+  },
+  // alias agar konsisten dengan pemanggilan di UserDashboard
+  getRiwayatByUser(userId) {
+    return httpClient.get(`/api/riwayat/user/${userId}`)
   }
 }

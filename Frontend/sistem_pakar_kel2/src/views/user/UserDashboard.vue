@@ -144,9 +144,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
-import { riwayatApi } from '@/services/api/riwayat.js' // We'll create this module next
+import { useRiwayatStore } from '@/stores/riwayat.store'
 import UserLayout from '@/layouts/UserLayout.vue'
 import AppBreadcrumb from '@/components/common/AppBreadcrumb.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
@@ -154,7 +154,8 @@ import EmptyState from '@/components/common/EmptyState.vue'
 import SkeletonDashboard from '@/components/common/SkeletonDashboard.vue'
 
 
-const authStore = useAuthStore()
+const authStore    = useAuthStore()
+const riwayatStore = useRiwayatStore()
 
 const userName = computed(() => {
   if (!authStore.currentUser?.name) return 'Pengguna'
@@ -162,16 +163,19 @@ const userName = computed(() => {
 })
 
 const joinDate = computed(() => {
-  // Mock join date for now if not available in store
-  return '23 Juni 2026'
+  if (!authStore.currentUser?.created_at) return '—'
+  return new Date(authStore.currentUser.created_at).toLocaleDateString('id-ID', {
+    day: 'numeric', month: 'long', year: 'numeric'
+  })
 })
 
-const loading = ref(true)
-const recentDiagnoses = ref([])
-const stats = ref({
-  total_diagnosa: 0,
-  last_diagnosa: null
-})
+// Reaktif: ikut berubah otomatis saat riwayatStore diupdate oleh UserDiagnosa
+const loading        = computed(() => riwayatStore.loading)
+const recentDiagnoses = computed(() => riwayatStore.recentList)
+const stats          = computed(() => ({
+  total_diagnosa: riwayatStore.riwayatList.length,
+  last_diagnosa:  riwayatStore.riwayatList.length > 0 ? riwayatStore.riwayatList[0] : null
+}))
 
 const formatDate = (dateString) => {
   if (!dateString) return '-'
@@ -179,26 +183,9 @@ const formatDate = (dateString) => {
   return dt.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
-const fetchData = async () => {
-  loading.value = true
-  try {
-    // For now we will mock this until API is ready, or use the real API if it works.
-    if(authStore.currentUser?.id) {
-        const res = await riwayatApi.getRiwayatByUser(authStore.currentUser.id)
-        if (res.success && res.data) {
-            recentDiagnoses.value = res.data.slice(0, 3) // Take top 3
-            stats.value.total_diagnosa = res.data.length
-            stats.value.last_diagnosa = res.data.length > 0 ? res.data[0] : null
-        }
-    }
-  } catch (error) {
-    console.error('Failed fetching riwayat', error)
-  } finally {
-    loading.value = false
+onMounted(async () => {
+  if (authStore.currentUser?.id) {
+    await riwayatStore.fetchByUser(authStore.currentUser.id)
   }
-}
-
-onMounted(() => {
-  fetchData()
 })
 </script>
