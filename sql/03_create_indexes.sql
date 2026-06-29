@@ -16,4 +16,4 @@ CREATE INDEX IF NOT EXISTS idx_aturan_gejala_id ON public.aturan(gejala_id);
 
 -- 4. Index untuk tabel Riwayat Diagnosa
 CREATE INDEX IF NOT EXISTS idx_riwayat_user_id ON public.riwayat_diagnosa(user_id);
-CREATE INDEX IF NOT EXISTS idx_riwayat_tanggal ON public.riwayat_diagnosa(created_at);
+CREATE INDEX IF NOT EXISTS idx_riwayat_tanggal ON public.riwayat_diagnosa(tanggal);

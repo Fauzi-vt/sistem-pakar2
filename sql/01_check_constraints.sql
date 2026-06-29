@@ -23,10 +23,5 @@ ALTER TABLE public.gejala
 ALTER TABLE public.aturan
   ADD CONSTRAINT chk_aturan_probabilitas CHECK (conditional_probability >= 0 AND conditional_probability <= 1);
 
--- 4. Tabel Riwayat Diagnosa
--- Memastikan persentase hasil diagnosis berada dalam rentang 0 hingga 100
-ALTER TABLE public.riwayat_diagnosa
-  ADD CONSTRAINT chk_riwayat_persentase CHECK (persentase >= 0 AND persentase <= 100);
-
 -- Catatan: Jika query ini gagal karena ada data yang tidak memenuhi kriteria,
 -- Anda harus membersihkan data (data cleansing) terlebih dahulu.
