@@ -1,8 +1,22 @@
 import { appConfig } from '@/config/app'
 const BASE_URL = appConfig.apiUrl
+
+function getToken() {
+  try {
+    const session = JSON.parse(localStorage.getItem('sp_kel2_session'))
+    return session?.token || null
+  } catch {
+    return null
+  }
+}
+
 async function request(path, options = {}) {
   const url = `${BASE_URL}${path}`
+  const token = getToken()
   const headers = { 'Content-Type': 'application/json', ...options.headers }
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
   const config = { ...options, headers }
   if (options.body && typeof options.body === 'object') {
     config.body = JSON.stringify(options.body)
