@@ -1,5 +1,5 @@
-const BASE_URL = 'http://127.0.0.1:8000'
-
+import { appConfig } from '@/config/app'
+const BASE_URL = appConfig.apiUrl
 async function request(path, options = {}) {
   const url = `${BASE_URL}${path}`
   const headers = { 'Content-Type': 'application/json', ...options.headers }
