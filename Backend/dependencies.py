@@ -10,6 +10,9 @@ security = HTTPBearer()
 
 # Re-inisialisasi Supabase khusus untuk fungsi utilitas auth
 # Kita menggunakan SUPABASE_URL yang sama dengan main.py
+from dotenv import load_dotenv
+load_dotenv()
+
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 supabase: Client = create_client(SUPABASE_URL or "", SUPABASE_KEY or "")
@@ -39,11 +42,11 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
         email = res.user.email
         
         # Ambil role dari tabel profiles (bisa juga via res.user.app_metadata jika dikonfigurasi)
-        profile_res = supabase.table("profiles").select("role").eq("id", user_id).single().execute()
+        profile_res = supabase.table("profiles").select("role").eq("id", user_id).execute()
         
         role = "user"
-        if profile_res.data:
-            role = profile_res.data.get("role", "user")
+        if profile_res.data and len(profile_res.data) > 0:
+            role = profile_res.data[0].get("role", "user")
             
         # Hardcode Admin Email untuk keamanan ekstra (Fallback)
         ADMIN_EMAILS = ["rifafauzi044@gmail.com"]
