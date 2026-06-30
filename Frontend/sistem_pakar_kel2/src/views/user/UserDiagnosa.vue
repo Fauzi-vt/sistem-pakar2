@@ -126,7 +126,7 @@
                     <div class="flex justify-between items-end mb-2">
                       <span class="text-xs font-semibold text-[#3d4947]">Tingkat Keyakinan (Teorema Bayes)</span>
                       <div class="flex items-baseline gap-2">
-                        <span class="text-2xl font-extrabold text-[#00685f]">{{ topResult.persentase.toFixed(0) }}%</span>
+                        <span class="text-2xl font-extrabold text-[#00685f]">{{ topResult.persentase.toFixed(2) }}%</span>
                         <span class="text-[10px] font-bold text-[#005049] bg-[#e0f2f1] px-2 py-0.5 rounded-full">
                           {{ topResult.status }}
                         </span>
@@ -252,7 +252,7 @@
                       <div class="flex-1 h-1.5 rounded-full overflow-hidden max-w-[120px] bg-[#e5eeff]">
                         <div class="h-full rounded-full bg-[#6d7a77]" :style="{ width: `${Math.min(item.persentase, 100)}%` }"></div>
                       </div>
-                      <span class="text-[11px] font-semibold text-[#6d7a77]">{{ item.persentase.toFixed(0) }}%</span>
+                      <span class="text-[11px] font-semibold text-[#6d7a77]">{{ item.persentase.toFixed(2) }}%</span>
                     </div>
                   </div>
                   <span class="inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold border bg-[#eff4ff] border-[#bcc9c6]/50 text-[#3d4947]">

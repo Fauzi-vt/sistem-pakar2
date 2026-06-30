@@ -98,7 +98,7 @@
                   <div class="text-right">
                     <p class="font-label-sm text-on-surface-variant mb-0.5">Probabilitas</p>
                     <p class="font-bold text-lg" :class="item.persentase >= 80 ? 'text-error' : (item.persentase >= 50 ? 'text-tertiary' : 'text-primary')">
-                      {{ item.persentase.toFixed(1) }}%
+                      {{ item.persentase.toFixed(2) }}%
                     </p>
                   </div>
                   <button @click="$router.push('/user/riwayat')" class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary hover:bg-secondary-container transition-colors cursor-pointer">

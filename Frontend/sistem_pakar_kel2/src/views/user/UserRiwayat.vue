@@ -57,7 +57,7 @@
           <Column field="persentase" header="Probabilitas" sortable>
             <template #body="{ data }">
               <span class="font-bold" :class="getProbabilityClass(data.persentase)">
-                {{ data.persentase.toFixed(1) }}%
+                {{ data.persentase.toFixed(2) }}%
               </span>
             </template>
           </Column>
@@ -124,7 +124,7 @@
               <div class="absolute inset-0 rounded-full border-[12px] border-primary"
                    :style="{ clipPath: `polygon(50% 50%, 50% 0%, ${getClipPath(selectedItem.persentase)})` }"></div>
               <div class="absolute inset-2 bg-surface-container-lowest rounded-full flex items-center justify-center">
-                <span class="font-headline-md font-black text-primary">{{ selectedItem.persentase.toFixed(0) }}%</span>
+                <span class="font-headline-md font-black text-primary">{{ selectedItem.persentase.toFixed(2) }}%</span>
               </div>
             </div>
             <p class="font-label-sm text-center text-on-surface-variant max-w-xs">

@@ -91,7 +91,7 @@
               <template #body="slotProps">
                 <span class="px-2.5 py-1 rounded-full text-xs font-bold border font-mono inline-block" 
                       :class="getBadgeCls(slotProps.data.probability)">
-                  {{ slotProps.data.percentage?.toFixed(1) ?? '0.0' }}%
+                  {{ slotProps.data.percentage?.toFixed(2) ?? '0.0' }}%
                 </span>
               </template>
             </Column>
@@ -153,7 +153,7 @@
                 <span class="font-bold text-primary text-base">{{ selectedItem.diagnosis }}</span>
                 <span class="px-2.5 py-0.5 rounded-full text-xs font-bold border font-mono" 
                       :class="getBadgeCls(selectedItem.probability)">
-                  {{ selectedItem.percentage?.toFixed(1) ?? '0.0' }}%
+                  {{ selectedItem.percentage?.toFixed(2) ?? '0.0' }}%
                 </span>
               </div>
             </div>
