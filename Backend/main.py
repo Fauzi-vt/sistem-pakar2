@@ -1126,7 +1126,13 @@ def get_all_users(current_admin: UserModel = Depends(require_role(['admin']))):
         res = admin_sb.table("profiles").select("id, name, email, role").order("email").execute()
         return {"success": True, "data": res.data or [], "total": len(res.data or [])}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"Admin client gagal mengambil users (mungkin service key salah): {str(e)}")
+        try:
+            # Fallback menggunakan anon client
+            res = supabase.table("profiles").select("id, name, email, role").order("email").execute()
+            return {"success": True, "data": res.data or [], "total": len(res.data or [])}
+        except Exception as fallback_e:
+            raise HTTPException(status_code=500, detail=str(fallback_e))
 
 
 @app.put("/api/users/{user_id}/profile")
