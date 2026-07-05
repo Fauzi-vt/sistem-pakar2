@@ -117,5 +117,10 @@ export const api = {
   // ── Dashboard ──────────────────────────────────────────
   getDashboardStats() {
     return request('/api/dashboard/stats')
+  },
+
+  // ── Statistik Diagnosa ─────────────────────────────────
+  getStatistikDiagnosa() {
+    return request('/api/statistik-diagnosa')
   }
 }

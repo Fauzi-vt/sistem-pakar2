@@ -1,7 +1,7 @@
 import os
 import json
 from typing import Optional
-from fastapi import FastAPI, HTTPException, status, Header, Depends
+from fastapi import FastAPI, HTTPException, status, Header, Depends, Request
 from dependencies import get_current_user, require_role, UserModel
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -14,9 +14,18 @@ load_dotenv()
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
+if not SUPABASE_SERVICE_KEY or SUPABASE_SERVICE_KEY == "ISI_DENGAN_SERVICE_ROLE_KEY_DARI_SUPABASE_DASHBOARD":
+    SUPABASE_SERVICE_KEY = SUPABASE_KEY  # Fallback ke anon key
 
-# Initialize Supabase client
+# Initialize Supabase client (pakai anon/service key dari env)
 supabase: Client = create_client(SUPABASE_URL or "", SUPABASE_KEY or "")
+
+def get_admin_supabase() -> Client:
+    """Mengembalikan Supabase client dengan service_role key (bypass RLS).
+    Jika SUPABASE_SERVICE_KEY tidak diset, fallback ke key default."""
+    return create_client(SUPABASE_URL or "", SUPABASE_SERVICE_KEY or "")
+
 
 # Initialize FastAPI application
 app = FastAPI(title="Sistem Pakar THT API")
@@ -25,7 +34,7 @@ app = FastAPI(title="Sistem Pakar THT API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -102,15 +111,27 @@ def register_user(data: UserRegister):
         # Simpan profil ke tabel 'profiles' jika berhasil registrasi
         if response.user:
             try:
-                # Gunakan upsert agar tidak error jika trigger database sudah menyimpannya
-                supabase.table("profiles").upsert({
+                # Gunakan admin client untuk bypass RLS saat insert profil
+                admin_sb = get_admin_supabase()
+                admin_sb.table("profiles").upsert({
                     "id": response.user.id,
                     "name": data.name,
                     "email": data.email,
                     "role": "user"
                 }).execute()
+                print(f"Profil berhasil disimpan untuk user: {response.user.email}")
             except Exception as profile_err:
-                print("Info: Gagal menyimpan profil otomatis (kemungkinan RLS aktif atau trigger sudah berjalan):", str(profile_err))
+                print("Gagal menyimpan profil:", str(profile_err))
+                # Coba fallback dengan anon client
+                try:
+                    supabase.table("profiles").upsert({
+                        "id": response.user.id,
+                        "name": data.name,
+                        "email": data.email,
+                        "role": "user"
+                    }).execute()
+                except Exception as fallback_err:
+                    print("Fallback insert profil juga gagal:", str(fallback_err))
                 
         return {
             "success": True,
@@ -775,6 +796,168 @@ def get_dashboard_stats(current_admin: UserModel = Depends(require_role(['admin'
 
 
 # ═══════════════════════════════════════════════════════
+# STATISTIK DIAGNOSA ENDPOINT
+# ═══════════════════════════════════════════════════════
+
+@app.get("/api/statistik-diagnosa")
+def get_statistik_diagnosa(current_admin: UserModel = Depends(require_role(['admin']))):
+    """
+    Mengambil statistik komprehensif dari seluruh riwayat diagnosa:
+    - Distribusi penyakit (disease_distribution): jumlah & persentase per penyakit
+    - Distribusi keyakinan Bayes (confidence_distribution): rentang persentase
+    - Tren bulanan (monthly_trend): jumlah diagnosa per bulan (12 bulan terakhir)
+    - Ringkasan umum (summary): total, rata-rata keyakinan, penyakit terbanyak, gejala terbanyak
+    - Statistik gejala (symptom_frequency): gejala yang paling sering dipilih
+    """
+    try:
+        # --- Ambil semua riwayat diagnosa ----------------------------------
+        riwayat_res = (
+            supabase.table("riwayat_diagnosa")
+            .select("id, hasil_diagnosa, gejala_terpilih, tanggal")
+            .order("tanggal", desc=True)
+            .execute()
+        )
+        rows = riwayat_res.data or []
+
+        # --- Ambil nama gejala untuk resolusi ID -\> nama -------------------
+        gejala_map: dict = {}
+        try:
+            gejala_res = supabase.table("gejala").select("id, nama_gejala").execute()
+            for g in (gejala_res.data or []):
+                gejala_map[g["id"]] = g["nama_gejala"]
+        except Exception:
+            pass
+
+        # --- Proses setiap row riwayat -------------------------------------
+        disease_count: dict = {}        # nama_penyakit -> jumlah kasus
+        confidence_buckets = {
+            ">= 80% (Sangat Tinggi)": 0,
+            "60% - 79% (Tinggi)": 0,
+            "40% - 59% (Sedang)": 0,
+            "< 40% (Rendah)": 0,
+        }
+        monthly_count: dict = {}        # "YYYY-MM" -> jumlah diagnosa
+        symptom_count: dict = {}        # nama_gejala -> frekuensi
+        total_confidence = 0.0
+        valid_rows = 0
+
+        for row in rows:
+            # Parse hasil_diagnosa
+            hasil = row.get("hasil_diagnosa") or []
+            if isinstance(hasil, str):
+                try:
+                    hasil = json.loads(hasil)
+                except Exception:
+                    hasil = []
+
+            # Parse gejala_terpilih
+            gejala_ids = row.get("gejala_terpilih") or []
+            if isinstance(gejala_ids, str):
+                try:
+                    gejala_ids = json.loads(gejala_ids)
+                except Exception:
+                    gejala_ids = []
+
+            # Top diagnosis
+            if hasil and len(hasil) > 0:
+                top = hasil[0]
+                nama = top.get("nama_penyakit", "Tidak Diketahui")
+                pct  = float(top.get("persentase", 0.0))
+
+                disease_count[nama] = disease_count.get(nama, 0) + 1
+                total_confidence += pct
+                valid_rows += 1
+
+                # Bucket keyakinan
+                if pct >= 80:
+                    confidence_buckets[">= 80% (Sangat Tinggi)"] += 1
+                elif pct >= 60:
+                    confidence_buckets["60% - 79% (Tinggi)"] += 1
+                elif pct >= 40:
+                    confidence_buckets["40% - 59% (Sedang)"] += 1
+                else:
+                    confidence_buckets["< 40% (Rendah)"] += 1
+
+            # Tren bulanan
+            tanggal_str = row.get("tanggal") or ""
+            if tanggal_str:
+                try:
+                    month_key = tanggal_str[:7]   # "YYYY-MM"
+                    monthly_count[month_key] = monthly_count.get(month_key, 0) + 1
+                except Exception:
+                    pass
+
+            # Frekuensi gejala
+            for gid in gejala_ids:
+                nama_g = gejala_map.get(int(gid) if isinstance(gid, (str, float)) else gid, str(gid))
+                symptom_count[nama_g] = symptom_count.get(nama_g, 0) + 1
+
+        # --- Bangun distribusi penyakit (top 10) ---------------------------
+        total_cases = sum(disease_count.values()) or 1
+        disease_distribution = sorted(
+            [
+                {
+                    "name": name,
+                    "count": count,
+                    "pct": round((count / total_cases) * 100, 1)
+                }
+                for name, count in disease_count.items()
+            ],
+            key=lambda x: x["count"],
+            reverse=True
+        )[:10]
+
+        # --- Bangun distribusi keyakinan -----------------------------------
+        total_valid = valid_rows or 1
+        confidence_distribution = [
+            {
+                "range": range_label,
+                "count": cnt,
+                "pct": round((cnt / total_valid) * 100, 1)
+            }
+            for range_label, cnt in confidence_buckets.items()
+        ]
+
+        # --- Bangun tren bulanan (12 bulan terakhir) -----------------------
+        # Sortir berdasarkan key YYYY-MM dan ambil 12 terakhir
+        all_months = sorted(monthly_count.keys())[-12:]
+        monthly_trend = [
+            {"month": m, "count": monthly_count[m]}
+            for m in all_months
+        ]
+
+        # --- Frekuensi gejala (top 10) ------------------------------------
+        symptom_frequency = sorted(
+            [{"name": name, "count": count} for name, count in symptom_count.items()],
+            key=lambda x: x["count"],
+            reverse=True
+        )[:10]
+
+        # --- Ringkasan umum -----------------------------------------------
+        top_disease = disease_distribution[0]["name"] if disease_distribution else "-"
+        top_symptom = symptom_frequency[0]["name"] if symptom_frequency else "-"
+        avg_confidence = round(total_confidence / valid_rows, 2) if valid_rows > 0 else 0.0
+
+        return {
+            "success": True,
+            "summary": {
+                "total_diagnosa": len(rows),
+                "total_valid": valid_rows,
+                "rata_rata_keyakinan": avg_confidence,
+                "penyakit_terbanyak": top_disease,
+                "gejala_terbanyak": top_symptom,
+            },
+            "disease_distribution": disease_distribution,
+            "confidence_distribution": confidence_distribution,
+            "monthly_trend": monthly_trend,
+            "symptom_frequency": symptom_frequency,
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ═══════════════════════════════════════════════════════
 # RIWAYAT DIAGNOSA ENDPOINTS
 # ═══════════════════════════════════════════════════════
 
@@ -932,39 +1115,76 @@ def delete_riwayat(riwayat_id: str, current_admin: UserModel = Depends(require_r
 class RoleUpdate(BaseModel):
     role: str
 
+class ProfileUpdate(BaseModel):
+    name: Optional[str] = None
+
 @app.get("/api/users")
 def get_all_users(current_admin: UserModel = Depends(require_role(['admin']))):
     try:
-        res = supabase.table("profiles").select("id, name, email, role").execute()
-        return {"success": True, "data": res.data or []}
+        # Gunakan admin client untuk bypass RLS
+        admin_sb = get_admin_supabase()
+        res = admin_sb.table("profiles").select("id, name, email, role").order("email").execute()
+        return {"success": True, "data": res.data or [], "total": len(res.data or [])}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.put("/api/users/{user_id}/profile")
-def update_user_profile(user_id: str, data: dict, current_user: UserModel = Depends(require_role(['user', 'admin']))):
+def update_user_profile(user_id: str, data: ProfileUpdate, current_user: UserModel = Depends(require_role(['user', 'admin']))):
     if current_user.role != 'admin' and current_user.id != user_id:
         raise HTTPException(status_code=403, detail='Akses ditolak')
     try:
-        res = supabase.table("profiles").update({"name": data.get("name")}).eq("id", user_id).execute()
+        update_payload = {}
+        if data.name is not None:
+            update_payload["name"] = data.name
+        if not update_payload:
+            raise HTTPException(status_code=400, detail="Tidak ada data yang diubah.")
+        admin_sb = get_admin_supabase()
+        res = admin_sb.table("profiles").update(update_payload).eq("id", user_id).execute()
         return {"success": True, "message": "Profil berhasil diperbarui.", "data": res.data or []}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.put("/api/users/{user_id}/role")
-def update_user_role(user_id: str, data: RoleUpdate):
+def update_user_role(user_id: str, data: RoleUpdate, current_admin: UserModel = Depends(require_role(['admin']))):
+    if data.role not in ["admin", "user"]:
+        raise HTTPException(status_code=400, detail="Peran tidak valid. Gunakan 'admin' atau 'user'.")
     try:
-        res = supabase.table("profiles").update({"role": data.role}).eq("id", user_id).execute()
+        admin_sb = get_admin_supabase()
+        res = admin_sb.table("profiles").update({"role": data.role}).eq("id", user_id).execute()
+        if not res.data:
+            raise HTTPException(status_code=404, detail="Pengguna tidak ditemukan.")
         return {"success": True, "message": "Peran pengguna berhasil diperbarui.", "data": res.data or []}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.delete("/api/users/{user_id}")
 def delete_user(user_id: str, current_admin: UserModel = Depends(require_role(['admin']))):
+    """Hapus pengguna dari tabel profiles dan Supabase Auth."""
+    if current_admin.id == user_id:
+        raise HTTPException(status_code=400, detail="Tidak bisa menghapus akun sendiri.")
     try:
-        supabase.table("profiles").delete().eq("id", user_id).execute()
-        return {"success": True, "message": "Pengguna berhasil dihapus."}
+        admin_sb = get_admin_supabase()
+        # Hapus dari tabel profiles
+        admin_sb.table("profiles").delete().eq("id", user_id).execute()
+        # Hapus juga dari riwayat diagnosa agar tidak ada orphan data
+        try:
+            admin_sb.table("riwayat_diagnosa").delete().eq("user_id", user_id).execute()
+        except Exception:
+            pass
+        # Coba hapus dari Supabase Auth (membutuhkan service_role key)
+        try:
+            admin_sb.auth.admin.delete_user(user_id)
+        except Exception as auth_err:
+            print(f"Info: Gagal hapus dari Supabase Auth: {str(auth_err)}")
+        return {"success": True, "message": "Pengguna berhasil dihapus dari sistem."}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

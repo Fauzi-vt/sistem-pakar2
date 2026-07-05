@@ -10,6 +10,8 @@ export const usePenggunaStore = defineStore('pengguna', {
     async fetchUsers() {
       this.loading = true
       try {
+        // axios interceptor sudah return response.data,
+        // jadi response di sini adalah { success, data: [...] }
         const response = await penggunaApi.getAll()
         this.users = response.data || []
       } catch (error) {
@@ -24,9 +26,20 @@ export const usePenggunaStore = defineStore('pengguna', {
         const response = await penggunaApi.updateRole(id, newRole)
         if (response.success) {
           const user = this.users.find(u => u.id === id)
-          if (user) {
-            user.role = newRole
-          }
+          if (user) user.role = newRole
+        }
+        return response
+      } catch (error) {
+        console.error(error)
+        throw error
+      }
+    },
+    async updateName(id, name) {
+      try {
+        const response = await penggunaApi.updateProfile(id, { name })
+        if (response.success) {
+          const user = this.users.find(u => u.id === id)
+          if (user) user.name = name
         }
         return response
       } catch (error) {
@@ -48,3 +61,4 @@ export const usePenggunaStore = defineStore('pengguna', {
     }
   }
 })
+
