@@ -76,15 +76,20 @@
 
     </div>
 
-    <!-- Footer Logout -->
-    <div class="pt-4 border-t border-outline-variant shrink-0 mt-auto">
+    <!-- Footer Info & Logout -->
+    <div class="pt-4 border-t border-outline-variant shrink-0 mt-auto flex flex-col gap-3">
       <button @click="handleLogout"
         class="w-full flex items-center gap-stack-sm p-2.5 rounded-lg font-bold text-error hover:bg-error-container/30 active:scale-95 transition-all text-left cursor-pointer">
         <span class="material-symbols-outlined">logout</span>
         <span class="font-label-md text-label-md">Keluar</span>
       </button>
-      <div class="mt-4 flex justify-center">
-        <ThemeSwitch />
+      
+      <!-- Identitas Sistem -->
+      <div class="flex flex-col items-center justify-center text-center mt-2 pb-2">
+        <ThemeSwitch class="mb-3" />
+        <span class="font-label-sm text-[10px] text-on-surface-variant font-bold tracking-wider uppercase">RS Jasa Kartini</span>
+        <span class="font-body-sm text-[10px] text-on-surface-variant/70">Sistem Pakar THT v1.0</span>
+        <span class="font-body-sm text-[10px] text-on-surface-variant/70">©2026 All rights reserved.</span>
       </div>
     </div>
   </aside>

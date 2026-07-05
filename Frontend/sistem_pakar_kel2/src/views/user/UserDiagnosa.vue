@@ -9,15 +9,18 @@
     />
 
     <!-- Main Content -->
-    <div class="max-w-3xl mx-auto py-4">
+    <div class="max-w-5xl mx-auto py-4">
       <Transition name="page-slide" mode="out-in">
         
         <!-- ════ STEP 1 — Symptom Selection ════ -->
         <div v-if="!diagnosaResult" key="step1">
-          <PageHeader 
-            title="Checklist Gejala" 
-            description="Pilih gejala yang Anda alami untuk memulai asesmen THT awal menggunakan probabilitas Bayes." 
-          />
+          <header class="mb-8 mt-2">
+            <h1 class="text-4xl font-extrabold text-[#0b1c30] flex items-center gap-3 mb-2">
+              <Stethoscope class="w-10 h-10 text-[#00685f]" />
+              Checklist Gejala
+            </h1>
+            <p class="text-sm text-[#3d4947] ml-13">Pilih gejala yang sedang Anda alami.</p>
+          </header>
 
           <!-- Loading state -->
           <div v-if="loadingGejala" class="bg-white rounded-xl border border-[#bcc9c6]/30 p-12 text-center shadow-[0px_4px_20px_rgba(15,23,42,0.05)]">
@@ -36,38 +39,50 @@
           </div>
 
           <form v-else class="bg-white rounded-xl border border-[#bcc9c6]/30 p-6 md:p-8 shadow-[0px_4px_20px_rgba(15,23,42,0.05)] space-y-4">
-            
-            <!-- Selected symptoms count badge -->
-            <Transition name="slide-down">
-              <div v-if="selectedGejala.length > 0" class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg border text-xs font-semibold bg-[#e0f2f1] border-[#00685f]/20 text-[#005049]">
-                <div class="w-6 h-6 rounded-md flex items-center justify-center text-white bg-[#00685f]">
-                  {{ selectedGejala.length }}
-                </div>
-                <span>gejala dipilih — siap untuk memproses diagnosa</span>
+            <!-- Progress Indicator -->
+            <div class="mb-4">
+              <div class="flex justify-between items-end mb-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-[#6d7a77]">Progress</span>
+                <span class="text-xs font-semibold text-[#00685f]">
+                  {{ selectedGejala.length }} / {{ gejalaList.length }} Gejala Dipilih
+                </span>
               </div>
-            </Transition>
+              <div class="w-full bg-[#e5eeff] rounded-full h-2.5 overflow-hidden">
+                <div class="bg-[#00685f] h-full rounded-full transition-all duration-300 ease-out" 
+                     :style="{ width: gejalaList.length > 0 ? `${(selectedGejala.length / gejalaList.length) * 100}%` : '0%' }">
+                </div>
+              </div>
+            </div>
 
-            <div class="space-y-3">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <!-- Checklist Items -->
               <label v-for="item in gejalaList" :key="item.id"
-                     class="flex items-start p-4 rounded-lg hover:bg-[#eff4ff] transition-colors cursor-pointer border border-transparent hover:border-[#bcc9c6]/30 group">
-                <div class="flex items-center h-6">
-                  <input class="w-5 h-5 text-[#00685f] border-[#bcc9c6] rounded focus:ring-[#00685f]/50 focus:ring-offset-0 bg-white cursor-pointer" 
+                     class="flex items-center p-4 rounded-xl cursor-pointer border transition-all duration-200 group hover:shadow-sm hover:scale-[1.01]"
+                     :class="selectedGejala.includes(item.id) ? 'border-[#00685f] bg-[#e0f2f1]' : 'border-[#bcc9c6]/50 bg-white hover:border-[#00685f]/50'">
+                
+                <div class="flex items-center h-full mr-3 shrink-0">
+                  <input class="w-5 h-5 text-[#00685f] border-[#bcc9c6] rounded focus:ring-[#00685f]/50 focus:ring-offset-0 bg-white cursor-pointer transition-colors" 
                          type="checkbox"
                          :value="item.id"
                          v-model="selectedGejala"/>
                 </div>
-                <div class="ml-4 flex-1">
-                  <span class="text-base font-semibold text-[#0b1c30] block mb-1 group-hover:text-[#00685f] transition-colors">
-                    {{ item.nama }}
-                  </span>
-                  <span class="text-xs text-[#3d4947]">
-                    {{ getSymptomDescription(item.nama) }} ({{ item.kode }})
-                  </span>
+                
+                <div class="flex items-center gap-3 flex-1 min-w-0">
+                  <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors"
+                       :class="selectedGejala.includes(item.id) ? 'bg-[#00685f] text-white' : 'bg-[#e5eeff] text-[#00685f] group-hover:bg-[#00685f]/10'">
+                    <component :is="getSymptomIconComponent(item.nama)" class="w-5 h-5" />
+                  </div>
+                  
+                  <div class="flex-1 min-w-0">
+                    <span class="text-sm font-bold text-[#0b1c30] block mb-0.5 truncate transition-colors"
+                          :class="selectedGejala.includes(item.id) ? 'text-[#005049]' : 'group-hover:text-[#00685f]'">
+                      {{ item.nama }}
+                    </span>
+                    <span class="text-[11px] text-[#3d4947] font-medium" :class="selectedGejala.includes(item.id) ? 'text-[#00685f]/80' : ''">
+                      Kode: {{ item.kode }}
+                    </span>
+                  </div>
                 </div>
-                <span class="text-[#6d7a77] group-hover:text-[#00685f] ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <component :is="getSymptomIconComponent(item.nama)" class="w-5 h-5" />
-                </span>
               </label>
             </div>
 
@@ -78,13 +93,19 @@
               </div>
             </Transition>
 
-            <div class="flex justify-end border-t border-[#bcc9c6]/30 pt-6 mt-6">
+            <div class="flex items-center justify-between border-t border-[#bcc9c6]/30 pt-6 mt-6">
+              <button @click="resetDiagnosa" 
+                      type="button"
+                      class="text-[#3d4947] hover:text-[#ba1a1a] text-xs font-bold py-2.5 px-4 rounded-lg hover:bg-[#ffdad6]/50 transition-colors flex items-center cursor-pointer">
+                Reset
+              </button>
+              
               <button @click="handleDiagnosa" 
                       :disabled="selectedGejala.length === 0 || isLoading"
-                      class="bg-[#00685f] hover:bg-[#006a61] text-white text-xs font-semibold py-3 px-6 rounded-lg shadow-sm transition-all flex items-center justify-center min-w-[160px] min-h-[44px] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer" 
+                      class="bg-[#00685f] hover:bg-[#006a61] text-white text-xs font-bold py-3 px-8 rounded-lg shadow-sm transition-all flex items-center justify-center min-h-[44px] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer" 
                       type="button">
                 <span v-if="isLoading" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></span>
-                <span>Proses Diagnosa</span>
+                <span>Diagnosa Sekarang</span>
                 <ArrowRight class="ml-2 w-4 h-4 text-white" />
               </button>
             </div>
