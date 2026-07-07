@@ -251,7 +251,6 @@ import { useDiagnosaStore } from '@/stores/diagnosa.store'
 import { useRiwayatStore } from '@/stores/riwayat.store'
 import UserLayout from '@/layouts/UserLayout.vue'
 import AppBreadcrumb from '@/components/common/AppBreadcrumb.vue'
-import PageHeader from '@/components/common/PageHeader.vue'
 import FullScreenLoader from '@/components/common/FullScreenLoader.vue'
 import { 
   ArrowRight, Stethoscope, FileText, HeartPulse, ListCollapse, 
