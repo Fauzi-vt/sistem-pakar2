@@ -115,7 +115,7 @@
         <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
           <div class="bg-surface-container-low px-4 py-3 border-b border-outline-variant flex items-center gap-2">
             <span class="material-symbols-outlined text-secondary text-[18px]">calculate</span>
-            <h3 class="font-label-md font-bold text-primary">Probabilitas Teorema Bayes</h3>
+            <h3 class="font-label-md font-bold text-primary">Probabilitas Diagnosis</h3>
           </div>
           <div class="p-4 flex flex-col items-center">
             <div class="relative w-32 h-32 flex items-center justify-center mb-2">

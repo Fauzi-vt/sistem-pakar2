@@ -145,7 +145,7 @@
 
                   <div class="mb-6">
                     <div class="flex justify-between items-end mb-2">
-                      <span class="text-xs font-semibold text-[#3d4947]">Tingkat Keyakinan (Teorema Bayes)</span>
+                      <span class="text-xs font-semibold text-[#3d4947]">Tingkat Keyakinan</span>
                       <div class="flex items-baseline gap-2">
                         <span class="text-2xl font-extrabold text-[#00685f]">{{ topResult.persentase.toFixed(2) }}%</span>
                         <span class="text-[10px] font-bold text-[#005049] bg-[#e0f2f1] px-2 py-0.5 rounded-full">
@@ -182,69 +182,7 @@
                       <p v-else class="text-sm text-[#6d7a77] italic">Rekomendasi penanganan klinis sedang dipersiapkan oleh tim spesialis.</p>
                     </div>
 
-                    <!-- Transparansi Perhitungan (Metode Bayes) -->
-                    <div class="mt-6 pt-6 border-t border-[#bcc9c6]/30 print:hidden" v-if="topResult.detail && topResult.detail.total_h !== undefined">
-                      <button @click="showDetailPerhitungan = !showDetailPerhitungan"
-                              class="w-full flex items-center justify-between p-4 bg-[#f8f9ff] hover:bg-[#eff4ff] rounded-xl border border-[#bcc9c6]/30 transition-colors cursor-pointer group">
-                        <div class="flex items-center gap-3">
-                          <div class="w-8 h-8 rounded-lg bg-[#e5eeff] flex items-center justify-center text-[#006387] group-hover:bg-[#006387] group-hover:text-white transition-colors">
-                            <Calculator class="w-4 h-4" />
-                          </div>
-                          <div class="text-left">
-                            <h4 class="text-sm font-bold text-[#0b1c30]">Transparansi Algoritma (Teorema Bayes)</h4>
-                            <p class="text-[11px] text-[#6d7a77]">Lihat rincian kalkulasi matematika untuk hasil ini</p>
-                          </div>
-                        </div>
-                        <ChevronDown v-if="!showDetailPerhitungan" class="w-5 h-5 text-[#6d7a77] group-hover:text-[#006387]" />
-                        <ChevronUp v-else class="w-5 h-5 text-[#006387]" />
-                      </button>
 
-                      <Transition name="slide-down">
-                        <div v-if="showDetailPerhitungan" class="mt-3 bg-white border border-[#bcc9c6]/30 rounded-xl overflow-hidden shadow-sm">
-                          <div class="p-4 bg-[#f4f7f6] border-b border-[#bcc9c6]/30">
-                            <p class="text-xs font-semibold text-[#00685f]">
-                              <span class="font-bold">Metode Penjumlahan (Sigma):</span>
-                            </p>
-                          </div>
-                          
-                          <div class="overflow-x-auto">
-                            <table class="w-full text-left text-xs">
-                              <thead class="bg-[#f8f9ff] text-[#3d4947]">
-                                <tr>
-                                  <th class="px-4 py-3 font-semibold border-b border-[#bcc9c6]/20">Gejala Cocok (E)</th>
-                                  <th class="px-4 py-3 font-semibold border-b border-[#bcc9c6]/20">Likelihood P(E|H)</th>
-                                  <th class="px-4 py-3 font-semibold border-b border-[#bcc9c6]/20">Prior P(H)</th>
-                                  <th class="px-4 py-3 font-semibold border-b border-[#bcc9c6]/20">Posterior P(H|E)</th>
-                                </tr>
-                              </thead>
-                              <tbody class="divide-y divide-[#bcc9c6]/10">
-                                <tr v-for="(gejalaId, idx) in topResult.gejala_cocok" :key="idx" class="hover:bg-[#f8f9ff]/50 transition-colors">
-                                  <td class="px-4 py-3 font-medium text-[#0b1c30]">Gejala ID: {{ gejalaId }}</td>
-                                  <td class="px-4 py-3 text-[#3d4947]">{{ topResult.detail.nilai_gejala[idx].toFixed(4) }}</td>
-                                  <td class="px-4 py-3 text-[#3d4947]">{{ topResult.detail.prior_list[idx].toFixed(4) }}</td>
-                                  <td class="px-4 py-3 text-[#00685f] font-semibold">{{ topResult.detail.posterior_list[idx].toFixed(4) }}</td>
-                                </tr>
-                              </tbody>
-                            </table>
-                          </div>
-                          
-                          <div class="p-4 bg-[#f8f9ff] border-t border-[#bcc9c6]/20 space-y-2 text-xs">
-                            <div class="flex justify-between items-center">
-                              <span class="text-[#6d7a77]">Total Semesta (ΣH)</span>
-                              <span class="font-mono font-semibold text-[#0b1c30]">{{ topResult.detail.total_h.toFixed(4) }}</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                              <span class="text-[#6d7a77]">Probabilitas Evidence (PE)</span>
-                              <span class="font-mono font-semibold text-[#0b1c30]">{{ topResult.detail.probabilitas_evidence.toFixed(4) }}</span>
-                            </div>
-                            <div class="flex justify-between items-center pt-2 border-t border-[#bcc9c6]/20 mt-2">
-                              <span class="font-bold text-[#00685f]">Hasil Akhir Diagnosis</span>
-                              <span class="font-mono font-bold text-[#00685f]">{{ (topResult.detail.nilai_bayes * 100).toFixed(4) }}%</span>
-                            </div>
-                          </div>
-                        </div>
-                      </Transition>
-                    </div>
 
                   </div>
 

@@ -35,7 +35,7 @@
       </div>
       <h3 class="font-headline-sm font-bold text-error mb-2">Disclaimer Medis Penting</h3>
       <p class="font-body-md text-on-surface-variant max-w-2xl leading-relaxed">
-        Aplikasi Sistem Pakar ini dikembangkan untuk tujuan edukasi dan skrining awal berdasarkan Teorema Bayes. 
+        Aplikasi Sistem Pakar ini dikembangkan untuk tujuan edukasi dan skrining awal penyakit THT. 
         Aplikasi ini <strong>tidak dirancang untuk menggantikan</strong> diagnosis profesional, pemeriksaan fisik, tes laboratorium, atau saran langsung dari dokter spesialis THT. 
         Segera kunjungi rumah sakit atau fasilitas kesehatan terdekat jika Anda mengalami gejala berat yang mengganggu aktivitas sehari-hari.
       </p>
