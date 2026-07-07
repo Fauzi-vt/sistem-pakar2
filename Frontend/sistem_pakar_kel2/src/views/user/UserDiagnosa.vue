@@ -255,8 +255,7 @@ import PageHeader from '@/components/common/PageHeader.vue'
 import FullScreenLoader from '@/components/common/FullScreenLoader.vue'
 import { 
   ArrowRight, Stethoscope, FileText, HeartPulse, ListCollapse, 
-  RotateCcw, Printer, Thermometer, Wind, Ear, Siren, Droplets, Info,
-  Calculator, ChevronDown, ChevronUp
+  RotateCcw, Printer, Thermometer, Wind, Ear, Siren, Droplets, Info
 } from 'lucide-vue-next'
 
 
@@ -345,7 +344,385 @@ const resetDiagnosa = () => {
 }
 
 const printResult = () => {
-  window.print()
+  const user      = authStore.currentUser
+  const patientName = user?.name  || 'Pasien'
+  const patientEmail = user?.email || '-'
+  const result    = topResult.value
+  const solutions = solutionsList.value
+  const others    = otherResults.value
+
+  const now = new Date()
+  const printDate = now.toLocaleDateString('id-ID', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+  })
+  const printTime = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+
+  // Badge warna status
+  const statusColor = result.persentase >= 80
+    ? '#15803d' : result.persentase >= 50 ? '#b45309' : '#374151'
+  const statusBg    = result.persentase >= 80
+    ? '#dcfce7' : result.persentase >= 50 ? '#fef3c7' : '#f3f4f6'
+
+  // Daftar saran medis
+  const solutionsHtml = solutions.length > 0
+    ? solutions.map(s => `<li>${s}</li>`).join('')
+    : '<li><em>Konsultasikan dengan dokter spesialis THT untuk rekomendasi penanganan.</em></li>'
+
+  // Kemungkinan lainnya
+  const othersHtml = others.length > 0 ? `
+    <div class="section">
+      <div class="section-title">📋 Kemungkinan Diagnosis Lainnya</div>
+      <table class="other-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nama Penyakit</th>
+            <th>Probabilitas</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${others.map((o, i) => `
+            <tr>
+              <td style="text-align:center;color:#6b7280">${i + 2}</td>
+              <td>${o.nama_penyakit}</td>
+              <td style="text-align:center;font-weight:600">${o.persentase.toFixed(2)}%</td>
+              <td style="text-align:center">
+                <span class="badge-other">${o.status}</span>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>` : ''
+
+  const html = `<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Hasil Pemeriksaan — ${patientName}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 12pt;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 32px 48px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    /* ── KOP SURAT ── */
+    .letterhead {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      border-bottom: 3px solid #004d40;
+      padding-bottom: 16px;
+      margin-bottom: 4px;
+    }
+    .letterhead-logo {
+      width: 60px; height: 60px;
+      border-radius: 50%;
+      background: #004d40;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff;
+      font-size: 22pt;
+      font-weight: bold;
+      flex-shrink: 0;
+      font-family: Arial, sans-serif;
+    }
+    .letterhead-info h1 {
+      font-size: 16pt;
+      font-weight: bold;
+      color: #004d40;
+      letter-spacing: 0.5px;
+      font-family: Arial, sans-serif;
+    }
+    .letterhead-info p {
+      font-size: 9pt;
+      color: #555;
+      margin-top: 2px;
+    }
+    .letterhead-right {
+      margin-left: auto;
+      text-align: right;
+      font-size: 9pt;
+      color: #555;
+    }
+    .subtitle-bar {
+      background: #004d40;
+      color: #fff;
+      text-align: center;
+      font-family: Arial, sans-serif;
+      font-size: 11pt;
+      font-weight: bold;
+      letter-spacing: 1px;
+      padding: 5px 0;
+      margin-bottom: 20px;
+    }
+
+    /* ── INFO PASIEN ── */
+    .patient-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 32px;
+      background: #f8fffe;
+      border: 1px solid #b2dfdb;
+      border-radius: 6px;
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      font-size: 10.5pt;
+    }
+    .patient-grid .row { display: contents; }
+    .patient-grid .label { color: #666; font-style: italic; }
+    .patient-grid .value { font-weight: bold; color: #1a1a1a; }
+
+    /* ── SECTION ── */
+    .section { margin-bottom: 18px; }
+    .section-title {
+      font-family: Arial, sans-serif;
+      font-size: 11pt;
+      font-weight: bold;
+      color: #004d40;
+      border-left: 4px solid #004d40;
+      padding-left: 8px;
+      margin-bottom: 10px;
+    }
+
+    /* ── HASIL UTAMA ── */
+    .result-box {
+      border: 2px solid #004d40;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .result-header {
+      background: #004d40;
+      color: #fff;
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .result-header .disease-name {
+      font-size: 15pt;
+      font-weight: bold;
+      font-family: Arial, sans-serif;
+    }
+    .result-header .no-label {
+      font-size: 9pt;
+      opacity: 0.8;
+    }
+    .result-body { padding: 14px 16px; }
+
+    /* progress bar */
+    .prob-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .prob-label { font-size: 9pt; color: #555; }
+    .prob-value {
+      font-size: 14pt;
+      font-weight: bold;
+      color: #004d40;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 8.5pt;
+      font-weight: bold;
+      font-family: Arial, sans-serif;
+      background: ${statusBg};
+      color: ${statusColor};
+    }
+    .progress-track {
+      height: 8px;
+      background: #e0f2f1;
+      border-radius: 4px;
+      margin-bottom: 14px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: #004d40;
+      width: ${Math.min(result.persentase, 100)}%;
+    }
+    .desc-text { font-size: 10.5pt; line-height: 1.7; color: #333; margin-bottom: 12px; }
+    .solutions { padding-left: 18px; }
+    .solutions li { font-size: 10.5pt; line-height: 1.8; color: #333; }
+
+    /* ── TABEL KEMUNGKINAN LAIN ── */
+    .other-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10pt;
+    }
+    .other-table th {
+      background: #e0f2f1;
+      color: #004d40;
+      padding: 7px 10px;
+      text-align: left;
+      font-family: Arial, sans-serif;
+      font-size: 9pt;
+      border: 1px solid #b2dfdb;
+    }
+    .other-table td {
+      padding: 7px 10px;
+      border: 1px solid #e5e7eb;
+      vertical-align: middle;
+    }
+    .other-table tr:nth-child(even) td { background: #f9fffe; }
+    .badge-other {
+      display: inline-block;
+      background: #f3f4f6;
+      color: #374151;
+      border-radius: 10px;
+      padding: 1px 8px;
+      font-size: 8.5pt;
+      font-weight: bold;
+    }
+
+    /* ── DISCLAIMER ── */
+    .disclaimer {
+      border: 1px solid #f59e0b;
+      background: #fffbeb;
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin-top: 20px;
+      font-size: 9pt;
+      color: #78350f;
+      line-height: 1.6;
+    }
+    .disclaimer strong { color: #92400e; }
+
+    /* ── TANDA TANGAN ── */
+    .signature-area {
+      margin-top: 30px;
+      display: flex;
+      justify-content: flex-end;
+    }
+    .signature-box {
+      text-align: center;
+      font-size: 10pt;
+    }
+    .signature-box .sig-name {
+      font-weight: bold;
+      margin-top: 48px;
+      border-top: 1px solid #333;
+      padding-top: 4px;
+    }
+    .signature-box .sig-title { font-size: 9pt; color: #555; }
+
+    /* ── FOOTER ── */
+    .page-footer {
+      margin-top: 28px;
+      border-top: 1px solid #b2dfdb;
+      padding-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 8pt;
+      color: #999;
+    }
+
+    @media print {
+      body { padding: 20px 32px; }
+      button { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- KOP SURAT -->
+  <div class="letterhead">
+    <div class="letterhead-logo">RS</div>
+    <div class="letterhead-info">
+      <h1>RS JASA KARTINI</h1>
+      <p>Jl. Kesehatan No. 1, Tasikmalaya, Jawa Barat</p>
+      <p>Telp: (0265) 123-456 &nbsp;|&nbsp; Email: info@rskartini.id</p>
+    </div>
+    <div class="letterhead-right">
+      <p><strong>Poliklinik THT</strong></p>
+      <p>Spesialis Telinga Hidung Tenggorokan</p>
+    </div>
+  </div>
+  <div class="subtitle-bar">SURAT HASIL SKRINING KESEHATAN THT</div>
+
+  <!-- INFO PASIEN -->
+  <div class="patient-grid">
+    <span class="label">Nama Pasien</span>
+    <span class="value">${patientName}</span>
+    <span class="label">Email</span>
+    <span class="value">${patientEmail}</span>
+    <span class="label">Tanggal Cetak</span>
+    <span class="value">${printDate}, ${printTime} WIB</span>
+    <span class="label">No. Dokumen</span>
+    <span class="value">SP-THT-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}-${Math.floor(Math.random()*9000+1000)}</span>
+  </div>
+
+  <!-- HASIL DIAGNOSIS UTAMA -->
+  <div class="result-box">
+    <div class="result-header">
+      <div>
+        <div class="no-label">Diagnosis Utama</div>
+        <div class="disease-name">🩺 ${result.nama_penyakit}</div>
+      </div>
+      <span class="badge">${result.status}</span>
+    </div>
+    <div class="result-body">
+      <div class="prob-row">
+        <span class="prob-label">Tingkat Keyakinan Sistem</span>
+        <span class="prob-value">${result.persentase.toFixed(2)}%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill"></div></div>
+
+      <div class="section-title">📄 Deskripsi Penyakit</div>
+      <p class="desc-text">${result.deskripsi || 'Belum tersedia deskripsi untuk penyakit ini.'}</p>
+
+      <div class="section-title">💊 Saran Medis & Penanganan</div>
+      <ul class="solutions">${solutionsHtml}</ul>
+    </div>
+  </div>
+
+  <!-- KEMUNGKINAN LAIN -->
+  ${othersHtml}
+
+  <!-- DISCLAIMER -->
+  <div class="disclaimer">
+    ⚠️ <strong>Perhatian:</strong>
+    Dokumen ini merupakan hasil <strong>skrining awal berbasis sistem pakar</strong> dan bersifat sebagai informasi pendukung.
+    Hasil ini <strong>tidak dapat menggantikan</strong> pemeriksaan fisik, diagnosis klinis, atau rekomendasi langsung dari dokter spesialis THT.
+    Segera kunjungi fasilitas kesehatan terdekat apabila gejala berlanjut atau memburuk.
+  </div>
+
+  <!-- TANDA TANGAN -->
+  <div class="signature-area">
+    <div class="signature-box">
+      <p>${printDate}</p>
+      <div class="sig-name">Sistem Pakar THT</div>
+      <div class="sig-title">RS Jasa Kartini — Kelompok 2</div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="page-footer">
+    <span>Sistem Pakar THT v1.0 — RS Jasa Kartini</span>
+    <span>Dicetak: ${printDate} ${printTime} WIB</span>
+  </div>
+
+  <script>
+    window.onload = () => window.print();
+  <\/script>
+</body>
+</html>`
+
+  const win = window.open('', '_blank', 'width=860,height=900,scrollbars=yes')
+  win.document.write(html)
+  win.document.close()
 }
 
 onMounted(fetchGejala)
