@@ -114,9 +114,36 @@
 
         <!-- ════ STEP 2 — Diagnosis Result ════ -->
         <div v-else key="step2" class="space-y-6 animate-page-slide">
-          <header class="mb-6 text-center md:text-left">
-            <h1 class="text-3xl font-bold text-[#0b1c30] mb-2">Hasil Diagnosis</h1>
-            <p class="text-sm text-[#3d4947]">Berdasarkan gejala yang Anda masukkan, berikut adalah probabilitas penyakit yang mungkin Anda alami.</p>
+          <!-- 1. Ringkasan Hasil (paling atas) -->
+          <header class="mb-6 text-center md:text-left bg-gradient-to-r from-[#00685f] to-[#004d40] text-white p-8 rounded-2xl shadow-lg relative overflow-hidden">
+            <div class="absolute top-0 right-0 opacity-10">
+              <Stethoscope class="w-48 h-48 -mt-8 -mr-8" />
+            </div>
+            <div class="relative z-10">
+              <p class="text-sm font-semibold text-[#a7f3d0] mb-1 tracking-wider uppercase">Hasil Diagnosis</p>
+              <h1 class="text-4xl font-extrabold mb-4 flex items-center gap-3">
+                <span v-if="topResult">{{ topResult.nama_penyakit }}</span>
+                <span v-else>Tidak Ditemukan</span>
+              </h1>
+              
+              <div v-if="topResult" class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8">
+                <div>
+                  <p class="text-sm text-[#a7f3d0] mb-1">Tingkat Probabilitas</p>
+                  <div class="flex items-baseline gap-2">
+                    <span class="text-3xl font-bold">{{ topResult.persentase.toFixed(2) }}%</span>
+                    <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm border border-white/30">
+                      {{ topResult.status }}
+                    </span>
+                  </div>
+                </div>
+                <div class="hidden sm:block w-px h-12 bg-white/20"></div>
+                <div class="flex-1 max-w-md">
+                  <p class="text-sm text-white/90">
+                    <strong>Status:</strong> Kemungkinan besar gejala yang Anda alami mengarah pada <strong>{{ topResult.nama_penyakit }}</strong>.
+                  </p>
+                </div>
+              </div>
+            </div>
           </header>
 
           <!-- No matched result -->
@@ -130,108 +157,190 @@
 
           <!-- Has result -->
           <div v-else class="space-y-6">
-            <!-- Primary Diagnosis Card -->
-            <div class="bg-white rounded-xl shadow-md border border-[#bcc9c6]/30 p-6 md:p-8 relative overflow-hidden">
-              <!-- Decorative accent -->
-              <div class="absolute top-0 left-0 w-2 h-full bg-[#00685f]"></div>
+            
+            <!-- 2. Gejala yang dipilih pengguna -->
+            <div class="bg-white rounded-xl border border-[#bcc9c6]/30 p-6 shadow-sm">
+              <h3 class="text-base font-bold text-[#0b1c30] mb-4 flex items-center gap-2">
+                <CheckSquare class="text-[#00685f] w-5 h-5" />
+                <span>Gejala yang Anda pilih</span>
+              </h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div v-for="gejala in selectedGejalaDetails" :key="gejala.id" class="flex items-center gap-2 text-sm text-[#3d4947]">
+                  <Check class="w-4 h-4 text-[#00685f] shrink-0" />
+                  <span>{{ gejala.nama }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 10. Mengapa sistem memberikan hasil ini? (Explainability) -->
+            <div class="bg-gradient-to-br from-[#f8f9ff] to-[#eef2ff] rounded-xl border border-[#d0d7ff] p-6 shadow-sm">
+              <h3 class="text-base font-bold text-[#1e3a8a] mb-2 flex items-center gap-2">
+                <BrainCircuit class="text-[#3b82f6] w-5 h-5" />
+                <span>Mengapa sistem memberikan hasil ini?</span>
+              </h3>
+              <p class="text-sm text-[#475569] mb-4">
+                Sistem menganalisis berdasarkan Teorema Bayes. Gejala yang paling berpengaruh terhadap hasil <strong>{{ topResult.nama_penyakit }}</strong>:
+              </p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                <div v-for="gejala in selectedGejalaDetails" :key="'explain-'+gejala.id" class="flex items-center gap-2 text-sm text-[#1e293b] bg-white px-3 py-2 rounded-lg border border-[#e2e8f0]">
+                  <CheckCircle2 class="w-4 h-4 text-[#10b981] shrink-0" />
+                  <span class="font-medium">{{ gejala.nama }}</span>
+                </div>
+              </div>
+              <p class="text-xs text-[#64748b] italic">
+                Gejala-gejala tersebut memiliki probabilitas tinggi terhadap penyakit {{ topResult.nama_penyakit }} berdasarkan basis pengetahuan sistem.
+              </p>
+            </div>
+
+            <!-- 3. Hasil seluruh penyakit -->
+            <div class="bg-white rounded-xl border border-[#bcc9c6]/30 p-6 shadow-sm">
+              <h3 class="text-base font-bold text-[#0b1c30] mb-4 flex items-center gap-2">
+                <List class="text-[#00685f] w-5 h-5" />
+                <span>Hasil Analisis Seluruh Penyakit</span>
+              </h3>
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                  <thead class="text-xs text-[#6d7a77] uppercase bg-[#f8f9ff] border-b border-[#bcc9c6]/30">
+                    <tr>
+                      <th class="px-4 py-3 font-semibold">Penyakit</th>
+                      <th class="px-4 py-3 font-semibold w-1/2">Probabilitas</th>
+                      <th class="px-4 py-3 font-semibold text-right">Nilai</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(item, idx) in diagnosaResult.hasil" :key="item.penyakit_id" class="border-b border-[#bcc9c6]/10 last:border-0 hover:bg-[#f8f9ff]/50 transition-colors">
+                      <td class="px-4 py-3 font-medium" :class="idx === 0 ? 'text-[#00685f] font-bold' : 'text-[#3d4947]'">
+                        {{ item.nama_penyakit }}
+                        <span v-if="idx === 0" class="ml-2 inline-flex px-2 py-0.5 rounded text-[9px] font-bold bg-[#dcfce7] text-[#15803d]">UTAMA</span>
+                      </td>
+                      <td class="px-4 py-3">
+                        <div class="flex items-center gap-2 w-full">
+                          <div class="flex-1 h-2 rounded-full bg-[#e5eeff] overflow-hidden">
+                            <div class="h-full rounded-full transition-all duration-1000" 
+                                 :class="idx === 0 ? 'bg-[#00685f]' : 'bg-[#94a3b8]'"
+                                 :style="{ width: `${Math.min(item.persentase, 100)}%` }"></div>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="px-4 py-3 text-right font-semibold" :class="idx === 0 ? 'text-[#00685f]' : 'text-[#64748b]'">
+                        {{ item.persentase.toFixed(2) }}%
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Detail Penyakit Utama -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               
-              <div class="flex flex-col md:flex-row md:items-start justify-between gap-6">
-                <div class="flex-1 space-y-6">
-                  
-                  <div class="flex items-center gap-2 mb-4">
-                    <Stethoscope class="text-[#00685f] w-6 h-6" />
-                    <h2 class="text-2xl font-bold text-[#00685f]">{{ topResult.nama_penyakit }}</h2>
-                  </div>
+              <!-- 4. Deskripsi -->
+              <div class="bg-white rounded-xl border border-[#bcc9c6]/30 p-6 shadow-sm h-full">
+                <h3 class="text-base font-bold text-[#0b1c30] mb-3 flex items-center gap-2">
+                  <FileText class="text-[#006387] w-5 h-5" />
+                  <span>Deskripsi Penyakit</span>
+                </h3>
+                <p class="text-sm leading-relaxed text-[#475569]">
+                  {{ topResult.deskripsi || 'Belum ada penjelasan deskriptif yang tersedia untuk penyakit ini.' }}
+                </p>
+              </div>
 
-                  <div class="mb-6">
-                    <div class="flex justify-between items-end mb-2">
-                      <span class="text-xs font-semibold text-[#3d4947]">Tingkat Keyakinan</span>
-                      <div class="flex items-baseline gap-2">
-                        <span class="text-2xl font-extrabold text-[#00685f]">{{ topResult.persentase.toFixed(2) }}%</span>
-                        <span class="text-[10px] font-bold text-[#005049] bg-[#e0f2f1] px-2 py-0.5 rounded-full">
-                          {{ topResult.status }}
-                        </span>
-                      </div>
-                    </div>
-                    <div class="w-full bg-[#e5eeff] rounded-full h-2">
-                      <div class="bg-[#00685f] h-2 rounded-full transition-all duration-1000" :style="{ width: `${Math.min(topResult.persentase, 100)}%` }"></div>
-                    </div>
-                  </div>
+              <!-- 5. Penyebab (Static/Placeholder) -->
+              <div class="bg-white rounded-xl border border-[#bcc9c6]/30 p-6 shadow-sm h-full">
+                <h3 class="text-base font-bold text-[#0b1c30] mb-3 flex items-center gap-2">
+                  <Microscope class="text-[#ea580c] w-5 h-5" />
+                  <span>Penyebab Umum</span>
+                </h3>
+                <ul class="text-sm leading-relaxed text-[#475569] space-y-2">
+                  <li class="flex items-start gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#ea580c] mt-1.5 shrink-0"></span>
+                    <span>Infeksi virus atau bakteri.</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#ea580c] mt-1.5 shrink-0"></span>
+                    <span>Daya tahan tubuh yang sedang menurun.</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#ea580c] mt-1.5 shrink-0"></span>
+                    <span>Paparan dari penderita infeksi (penularan).</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#ea580c] mt-1.5 shrink-0"></span>
+                    <span>Faktor lingkungan atau alergen tertentu.</span>
+                  </li>
+                </ul>
+              </div>
 
-                  <div class="space-y-6">
-                    <!-- Deskripsi -->
-                    <div>
-                      <h3 class="text-base font-bold text-[#0b1c30] mb-2 flex items-center gap-2">
-                        <FileText class="text-[#006387] w-5 h-5" />
-                        <span>Deskripsi Penyakit</span>
-                      </h3>
-                      <p class="text-sm leading-relaxed text-[#3d4947]">
-                        {{ topResult.deskripsi || 'Belum ada penjelasan deskriptif yang tersedia untuk penyakit ini.' }}
-                      </p>
-                    </div>
+              <!-- 6. Saran Penanganan -->
+              <div class="bg-white rounded-xl border border-[#bcc9c6]/30 p-6 shadow-sm h-full">
+                <h3 class="text-base font-bold text-[#0b1c30] mb-3 flex items-center gap-2">
+                  <HeartPulse class="text-[#10b981] w-5 h-5" />
+                  <span>Saran Penanganan Awal</span>
+                </h3>
+                <ul v-if="solutionsList.length > 0" class="text-sm leading-relaxed text-[#475569] space-y-2">
+                  <li v-for="sol in solutionsList" :key="sol" class="flex items-start gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#10b981] mt-1.5 shrink-0"></span>
+                    <span>{{ sol }}</span>
+                  </li>
+                </ul>
+                <p v-else class="text-sm text-[#6d7a77] italic">Tidak ada saran medis spesifik, perbanyak istirahat.</p>
+              </div>
 
-                    <!-- Saran Medis -->
-                    <div>
-                      <h3 class="text-base font-bold text-[#0b1c30] mb-2 flex items-center gap-2">
-                        <HeartPulse class="text-[#006387] w-5 h-5" />
-                        <span>Saran Medis / Solusi</span>
-                      </h3>
-                      <ul v-if="solutionsList.length > 0" class="text-sm leading-relaxed text-[#3d4947] list-disc list-inside space-y-1">
-                        <li v-for="sol in solutionsList" :key="sol">{{ sol }}</li>
-                      </ul>
-                      <p v-else class="text-sm text-[#6d7a77] italic">Rekomendasi penanganan klinis sedang dipersiapkan oleh tim spesialis.</p>
-                    </div>
+              <!-- 7. Kapan harus ke dokter -->
+              <div class="bg-[#fff1f2] rounded-xl border border-[#fecdd3] p-6 shadow-sm h-full">
+                <h3 class="text-base font-bold text-[#be123c] mb-3 flex items-center gap-2">
+                  <AlertTriangle class="text-[#e11d48] w-5 h-5" />
+                  <span>Segera ke Dokter Apabila:</span>
+                </h3>
+                <ul class="text-sm leading-relaxed text-[#9f1239] space-y-2">
+                  <li class="flex items-start gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#e11d48] mt-1.5 shrink-0"></span>
+                    <span>Demam tinggi lebih dari 3 hari.</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#e11d48] mt-1.5 shrink-0"></span>
+                    <span>Sulit bernapas atau sesak napas.</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#e11d48] mt-1.5 shrink-0"></span>
+                    <span>Tidak dapat menelan makanan atau minuman sama sekali.</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#e11d48] mt-1.5 shrink-0"></span>
+                    <span>Nyeri yang semakin berat dan tidak tertahankan.</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
 
-
-
-                  </div>
-
+            <!-- 8. Disclaimer -->
+            <div class="bg-[#fffbeb] border border-[#fcd34d] rounded-xl p-5 shadow-sm mt-4">
+              <div class="flex gap-3">
+                <Info class="w-6 h-6 text-[#d97706] shrink-0" />
+                <div class="text-sm text-[#92400e]">
+                  <p class="font-bold mb-1">Catatan Penting</p>
+                  <p>Hasil diagnosis ini merupakan estimasi awal berdasarkan gejala yang Anda pilih menggunakan metode <strong>Teorema Bayes</strong>.</p>
+                  <p class="mt-1 font-semibold">Hasil ini BUKAN pengganti diagnosis medis resmi maupun pemeriksaan langsung oleh dokter spesialis.</p>
                 </div>
               </div>
             </div>
 
-            <!-- Other Possibilities -->
-            <div v-if="otherResults.length > 0" class="bg-white rounded-xl border border-[#bcc9c6]/30 overflow-hidden shadow-sm print:hidden">
-              <div class="px-6 py-4 border-b border-[#bcc9c6]/20 bg-[#f8f9ff] flex items-center gap-2">
-                <ListCollapse class="text-[#6d7a77] w-5 h-5" />
-                <div>
-                  <p class="font-bold text-sm text-[#0b1c30]">Kemungkinan Lainnya</p>
-                  <p class="text-[11px] text-[#6d7a77]">Penyakit lain yang memiliki kemiripan gejala</p>
-                </div>
-              </div>
-              <div class="divide-y divide-[#bcc9c6]/20">
-                <div v-for="(item, idx) in otherResults" :key="item.penyakit_id" 
-                     class="flex items-center gap-4 px-6 py-4 hover:bg-[#f8f9ff] transition-colors">
-                  <div class="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs bg-[#e5eeff] text-[#3d4947]">
-                    {{ idx + 2 }}
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <p class="font-semibold text-sm text-[#0b1c30] truncate">{{ item.nama_penyakit }}</p>
-                    <div class="flex items-center gap-2 mt-1.5">
-                      <div class="flex-1 h-1.5 rounded-full overflow-hidden max-w-[120px] bg-[#e5eeff]">
-                        <div class="h-full rounded-full bg-[#6d7a77]" :style="{ width: `${Math.min(item.persentase, 100)}%` }"></div>
-                      </div>
-                      <span class="text-[11px] font-semibold text-[#6d7a77]">{{ item.persentase.toFixed(2) }}%</span>
-                    </div>
-                  </div>
-                  <span class="inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold border bg-[#eff4ff] border-[#bcc9c6]/50 text-[#3d4947]">
-                    {{ item.status }}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Action Area -->
+            <!-- 9. Tombol Aksi -->
             <div class="flex flex-col sm:flex-row justify-center gap-4 mt-8 border-t border-[#bcc9c6]/30 pt-6 print:hidden">
               <button @click="resetDiagnosa" 
-                      class="bg-[#00685f] text-white hover:bg-[#005049] text-xs font-semibold px-6 py-3 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 active:scale-95 cursor-pointer">
-                <RotateCcw class="w-4 h-4 text-white" />
-                <span>Konsultasi Ulang</span>
+                      class="bg-white text-[#00685f] border-2 border-[#00685f] hover:bg-[#f0fdfa] text-xs font-bold px-6 py-3 rounded-lg transition-colors flex items-center justify-center gap-2 cursor-pointer">
+                <RotateCcw class="w-4 h-4" />
+                <span>Diagnosa Ulang</span>
+              </button>
+              <button @click="saveRiwayatManual" 
+                      class="bg-[#00685f] text-white hover:bg-[#005049] text-xs font-bold px-6 py-3 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 cursor-pointer">
+                <Save class="w-4 h-4" />
+                <span>Simpan Riwayat</span>
               </button>
               <button @click="printResult" 
-                      class="bg-white text-[#00685f] border border-[#00685f] hover:bg-[#e5eeff] text-xs font-semibold px-6 py-3 rounded-lg transition-colors flex items-center justify-center gap-2 active:scale-95 cursor-pointer">
-                <Printer class="w-4 h-4 text-[#00685f]" />
-                <span>Cetak Hasil</span>
+                      class="bg-[#1e293b] text-white hover:bg-[#0f172a] text-xs font-bold px-6 py-3 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 cursor-pointer">
+                <Printer class="w-4 h-4" />
+                <span>Cetak PDF</span>
               </button>
             </div>
 
@@ -245,6 +354,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
 import { useGejalaStore } from '@/stores/gejala.store'
 import { useDiagnosaStore } from '@/stores/diagnosa.store'
@@ -254,10 +364,11 @@ import AppBreadcrumb from '@/components/common/AppBreadcrumb.vue'
 import FullScreenLoader from '@/components/common/FullScreenLoader.vue'
 import { 
   ArrowRight, Stethoscope, FileText, HeartPulse, ListCollapse, 
-  RotateCcw, Printer, Thermometer, Wind, Ear, Siren, Droplets, Info
+  RotateCcw, Printer, Thermometer, Wind, Ear, Siren, Droplets, Info,
+  CheckSquare, Check, BrainCircuit, CheckCircle2, List, Microscope, AlertTriangle, Save
 } from 'lucide-vue-next'
 
-
+const router = useRouter()
 const authStore = useAuthStore()
 const gejalaStore = useGejalaStore()
 const diagnosaStore = useDiagnosaStore()
@@ -285,6 +396,12 @@ const solutionsList = computed(() => {
     .map(s => s.trim())
     .filter(s => s.length > 0)
     .map(s => s.replace(/^[-*\u2022]\s*/, '')) // remove list bullet prefix
+})
+
+const selectedGejalaDetails = computed(() => {
+  return selectedGejala.value.map(id => {
+    return gejalaList.value.find(g => g.id === id)
+  }).filter(Boolean)
 })
 
 const getSymptomDescription = (name) => {
@@ -340,6 +457,11 @@ const resetDiagnosa = () => {
   diagnosaError.value  = null
   selectedGejala.value = []
   window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+const saveRiwayatManual = () => {
+  // Riwayat is automatically saved in backend during runDiagnosa
+  router.push('/user/riwayat')
 }
 
 const printResult = () => {
