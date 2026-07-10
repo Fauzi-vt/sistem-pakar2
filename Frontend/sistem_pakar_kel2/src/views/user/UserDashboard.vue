@@ -227,7 +227,7 @@
                     <span
                       class="text-xs font-bold"
                       :class="probabilityBadge(item.persentase).textCls"
-                    >{{ item.persentase.toFixed(2) }}%</span>
+                    >{{ Number(item.persentase || 0).toFixed(2) }}%</span>
                   </div>
                   <div class="h-1.5 bg-surface-container-high rounded-full overflow-hidden">
                     <div
