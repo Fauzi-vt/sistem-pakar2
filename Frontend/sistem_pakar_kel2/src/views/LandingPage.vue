@@ -1,6 +1,6 @@
 <template>
   <div class="bg-surface text-on-surface selection:bg-primary-fixed selection:text-on-primary-fixed min-h-screen flex flex-col font-sans">
-    
+
     <!-- Top Navigation Bar -->
     <header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 md:px-8 h-16 bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 shadow-sm transition-all duration-300">
       <div class="flex items-center gap-2">
@@ -31,17 +31,17 @@
           <div class="max-w-xl flex flex-col justify-center gap-6">
             <div class="inline-flex items-center gap-1.5 bg-primary-container/30 text-primary px-3 py-1 rounded-full w-fit">
               <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">bolt</span>
-              <span class="text-label-sm font-label-sm uppercase tracking-wider text-xs font-semibold">AI Powered Diagnosis</span>
+              <span class="text-label-sm font-label-sm uppercase tracking-wider text-xs font-semibold">Sistem pakar THT</span>
             </div>
-            
+
             <h1 class="font-display text-4xl md:text-5xl font-bold text-on-surface leading-tight">
               Solusi Pakar untuk <span class="text-primary">Kesehatan THT</span> Anda
             </h1>
-            
+
             <p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
               Diagnosis cerdas menggunakan Teorema Bayes untuk mendukung keputusan klinis yang cepat dan akurat. Dirancang khusus untuk efisiensi praktik dokter spesialis THT.
             </p>
-            
+
             <div class="flex flex-wrap gap-4 mt-2">
               <router-link to="/diagnosa" class="bg-primary text-on-primary px-6 py-3 rounded-xl font-headline-sm text-sm font-bold flex items-center gap-2 hover:scale-[1.02] transition-transform shadow-xl shadow-primary/20">
                 Mulai Konsultasi
@@ -51,7 +51,7 @@
                 Pelajari Lebih Lanjut
               </a>
             </div>
-            
+
             <div class="flex items-center gap-8 mt-6 pt-6 border-t border-outline-variant/30">
               <div class="flex flex-col">
                 <span class="font-headline-md text-xl font-bold text-primary">98%</span>
@@ -77,7 +77,7 @@
             <h2 class="font-headline-lg text-3xl font-bold text-on-surface mb-4">Alur Kerja Sistem Kami</h2>
             <p class="font-body-md text-body-md text-on-surface-variant">Proses diagnosis yang sederhana namun didukung oleh mesin inferensi medis yang kompleks.</p>
           </div>
-          
+
           <div class="grid md:grid-cols-3 gap-6">
             <!-- Step 1 -->
             <div class="glass-card p-6 rounded-2xl group hover:-translate-y-2 transition-all duration-300">
@@ -88,7 +88,7 @@
               <h3 class="font-headline-sm text-lg font-bold mb-2">Input Gejala</h3>
               <p class="font-body-sm text-body-sm text-on-surface-variant">Pilih gejala klinis yang dialami melalui antarmuka intuitif kami yang mencakup telinga, hidung, dan tenggorokan.</p>
             </div>
-            
+
             <!-- Step 2 -->
             <div class="glass-card p-6 rounded-2xl group hover:-translate-y-2 transition-all duration-300">
               <div class="w-14 h-14 bg-surface-container-highest rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary-container transition-colors">
@@ -98,7 +98,7 @@
               <h3 class="font-headline-sm text-lg font-bold mb-2">Analisis Sistem</h3>
               <p class="font-body-sm text-body-sm text-on-surface-variant">Mesin inferensi Teorema Bayes memproses input Anda terhadap basis pengetahuan medis yang luas secara real-time, menghitung probabilitas posterior setiap penyakit.</p>
             </div>
-            
+
             <!-- Step 3 -->
             <div class="glass-card p-6 rounded-2xl group hover:-translate-y-2 transition-all duration-300">
               <div class="w-14 h-14 bg-surface-container-highest rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary-container transition-colors">
@@ -129,11 +129,11 @@
               </div>
             </div>
           </div>
-          
+
           <div class="order-1 md:order-2 flex flex-col gap-6">
             <h2 id="metodologi" class="font-headline-lg text-3xl font-bold text-on-surface">Mengapa Memilih ENT Expert?</h2>
             <p class="font-body-md text-body-md text-on-surface-variant">Kami menggabungkan keahlian klinis dengan teknologi AI terbaru untuk memberikan pengalaman diagnostik terbaik.</p>
-            
+
             <div class="space-y-4">
               <div class="flex gap-4">
                 <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
@@ -142,7 +142,7 @@
                   <p class="font-body-sm text-xs text-on-surface-variant leading-relaxed">Model statistik yang divalidasi oleh dokter spesialis senior untuk akurasi optimal.</p>
                 </div>
               </div>
-              
+
               <div class="flex gap-4">
                 <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">lock</span>
                 <div>
@@ -150,7 +150,7 @@
                   <p class="font-body-sm text-xs text-on-surface-variant leading-relaxed">Enkripsi data tingkat tinggi memastikan riwayat medis pasien tetap aman dan rahasia.</p>
                 </div>
               </div>
-              
+
               <div class="flex gap-4">
                 <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">support_agent</span>
                 <div>
@@ -169,15 +169,15 @@
           <div class="bg-primary-container rounded-[2rem] p-8 md:p-12 text-center flex flex-col items-center gap-6 overflow-hidden relative">
             <div class="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
             <div class="absolute bottom-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl translate-x-1/4 translate-y-1/4"></div>
-            
+
             <h2 class="font-display text-2xl md:text-3xl font-bold text-on-primary-container max-w-3xl">
               Siap Meningkatkan Kualitas Layanan Kesehatan Anda?
             </h2>
-            
+
             <p class="font-body-lg text-body-lg text-on-primary-container/80 max-w-2xl">
               Bergabunglah dengan ribuan profesional medis lainnya dalam mendigitalkan diagnosis THT.
             </p>
-            
+
             <div class="flex flex-col sm:flex-row gap-4 mt-2">
               <router-link to="/register" class="bg-[#ffffff] text-primary-container px-6 py-3 rounded-xl font-headline-sm text-sm font-bold hover:bg-surface transition-colors shadow-lg">
                 Daftar Sekarang
@@ -205,7 +205,7 @@
           © 2026 ENT Expert Medical Systems. All rights reserved.
         </p>
       </div>
-      
+
       <div class="grid grid-cols-3 gap-8">
         <div class="flex flex-col gap-1.5">
           <span class="font-label-md text-xs text-on-surface font-bold uppercase tracking-wider">Produk</span>
