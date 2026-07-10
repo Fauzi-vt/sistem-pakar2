@@ -489,6 +489,29 @@ const printResult = () => {
     ? solutions.map(s => `<li>${s}</li>`).join('')
     : '<li><em>Konsultasikan dengan dokter spesialis THT untuk rekomendasi penanganan.</em></li>'
 
+  // Gejala yang dipilih
+  const gejalaHtml = `
+    <div class="section">
+      <div class="section-title">📝 Gejala yang Dipilih</div>
+      <table class="other-table">
+        <thead>
+          <tr>
+            <th style="width: 40px; text-align: center;">No</th>
+            <th>Nama Gejala</th>
+            <th style="width: 100px; text-align: center;">Kode</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${selectedGejalaDetails.value.map((g, i) => `
+            <tr>
+              <td style="text-align:center;color:#6b7280">${i + 1}</td>
+              <td>${g.nama}</td>
+              <td style="text-align:center;font-weight:600">${g.kode}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`
+
   // Kemungkinan lainnya
   const othersHtml = others.length > 0 ? `
     <div class="section">
@@ -784,6 +807,9 @@ const printResult = () => {
     <span class="label">No. Dokumen</span>
     <span class="value">SP-THT-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}-${Math.floor(Math.random()*9000+1000)}</span>
   </div>
+
+  <!-- GEJALA YANG DIPILIH -->
+  ${gejalaHtml}
 
   <!-- HASIL DIAGNOSIS UTAMA -->
   <div class="result-box">
