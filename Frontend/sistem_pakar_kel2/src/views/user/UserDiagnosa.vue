@@ -477,22 +477,29 @@ const printResult = () => {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
   })
   const printTime = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+  const dateStr = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`
+  const docId = `DGN-${dateStr}-${Math.floor(Math.random()*9000+1000)}`
+
+  // Override status text (User feedback: Change "Hampir Pasti" to "Probabilitas Tinggi")
+  let probText = 'Probabilitas Rendah'
+  let riskKategori = '🟢 Ringan'
+  const pct = result.persentase
+  if (pct >= 80) { probText = 'Probabilitas Sangat Tinggi'; riskKategori = '🔴 Tinggi' }
+  else if (pct >= 50) { probText = 'Probabilitas Tinggi'; riskKategori = '🟡 Sedang' }
 
   // Badge warna status
-  const statusColor = result.persentase >= 80
-    ? '#15803d' : result.persentase >= 50 ? '#b45309' : '#374151'
-  const statusBg    = result.persentase >= 80
-    ? '#dcfce7' : result.persentase >= 50 ? '#fef3c7' : '#f3f4f6'
+  const statusColor = pct >= 80 ? '#15803d' : pct >= 50 ? '#b45309' : '#374151'
+  const statusBg    = pct >= 80 ? '#dcfce7' : pct >= 50 ? '#fef3c7' : '#f3f4f6'
 
-  // Daftar saran medis
-  const solutionsHtml = solutions.length > 0
-    ? solutions.map(s => `<li>${s}</li>`).join('')
-    : '<li><em>Konsultasikan dengan dokter spesialis THT untuk rekomendasi penanganan.</em></li>'
+  // Total gejala
+  const totalGejala = gejalaList.value.length
+  const dipilihCount = selectedGejalaDetails.value.length
 
   // Gejala yang dipilih
   const gejalaHtml = `
     <div class="section">
       <div class="section-title">📝 Gejala yang Dipilih</div>
+      <p style="font-size: 9.5pt; color: #555; margin-bottom: 8px;">Total Gejala Dipilih: <strong>${dipilihCount} dari ${totalGejala} gejala</strong></p>
       <table class="other-table">
         <thead>
           <tr>
@@ -512,6 +519,17 @@ const printResult = () => {
       </table>
     </div>`
 
+  // Alasan Sistem
+  const alasanHtml = `
+    <div class="section" style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px 16px; border-radius: 8px; margin-top: 12px;">
+      <div class="section-title" style="margin-bottom: 8px; border-left-color: #3b82f6; color: #1e3a8a;">💡 Alasan Sistem</div>
+      <p style="font-size: 9.5pt; color: #334155; margin-bottom: 8px;">Diagnosis <strong>${result.nama_penyakit}</strong> dipilih karena gejala berikut memiliki hubungan paling kuat:</p>
+      <ul style="font-size: 9.5pt; color: #334155; padding-left: 20px; margin-bottom: 0;">
+        ${selectedGejalaDetails.value.slice(0, 4).map(g => `<li style="margin-bottom: 4px;">✓ ${g.nama}</li>`).join('')}
+        ${selectedGejalaDetails.value.length > 4 ? `<li><em>...dan ${selectedGejalaDetails.value.length - 4} gejala lainnya</em></li>` : ''}
+      </ul>
+    </div>`
+
   // Kemungkinan lainnya
   const othersHtml = others.length > 0 ? `
     <div class="section">
@@ -519,10 +537,9 @@ const printResult = () => {
       <table class="other-table">
         <thead>
           <tr>
-            <th>#</th>
+            <th style="width: 40px; text-align: center;">#</th>
             <th>Nama Penyakit</th>
-            <th>Probabilitas</th>
-            <th>Status</th>
+            <th style="width: 150px; text-align: center;">Probabilitas</th>
           </tr>
         </thead>
         <tbody>
@@ -531,24 +548,89 @@ const printResult = () => {
               <td style="text-align:center;color:#6b7280">${i + 2}</td>
               <td>${o.nama_penyakit}</td>
               <td style="text-align:center;font-weight:600">${o.persentase.toFixed(2)}%</td>
-              <td style="text-align:center">
-                <span class="badge-other">${o.status}</span>
-              </td>
             </tr>`).join('')}
         </tbody>
       </table>
     </div>` : ''
 
-  const html = `<!DOCTYPE html>
+  // Split deskripsi if possible, or fallback to standard structure
+  const detailPenyakitHtml = `
+    <div class="section">
+      <div class="section-title">📄 Detail Penyakit: ${result.nama_penyakit}</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div style="background: #f9fafb; padding: 12px; border: 1px solid #e5e7eb; border-radius: 6px;">
+          <strong style="color: #004d40; font-size: 10pt;">Deskripsi Singkat</strong>
+          <p class="desc-text">${result.deskripsi || 'Peradangan atau infeksi pada area THT.'}</p>
+        </div>
+        <div style="background: #f9fafb; padding: 12px; border: 1px solid #e5e7eb; border-radius: 6px;">
+          <strong style="color: #004d40; font-size: 10pt;">Penyebab Umum</strong>
+          <ul style="padding-left: 16px; margin-top: 4px; font-size: 9.5pt; color: #333;">
+            <li>Infeksi Virus</li>
+            <li>Infeksi Bakteri</li>
+            <li>Faktor Lingkungan/Alergen</li>
+          </ul>
+        </div>
+        <div style="background: #f9fafb; padding: 12px; border: 1px solid #e5e7eb; border-radius: 6px;">
+          <strong style="color: #004d40; font-size: 10pt;">Gejala Umum</strong>
+          <ul style="padding-left: 16px; margin-top: 4px; font-size: 9.5pt; color: #333;">
+            <li>Sesuai dengan gejala yang Anda alami</li>
+            <li>Rasa tidak nyaman di area terkait</li>
+          </ul>
+        </div>
+        <div style="background: #f9fafb; padding: 12px; border: 1px solid #e5e7eb; border-radius: 6px;">
+          <strong style="color: #004d40; font-size: 10pt;">Potensi Komplikasi</strong>
+          <ul style="padding-left: 16px; margin-top: 4px; font-size: 9.5pt; color: #333;">
+            <li>Gangguan aktivitas sehari-hari</li>
+            <li>Infeksi menyebar jika tidak ditangani</li>
+          </ul>
+        </div>
+      </div>
+    </div>`
+
+  // Saran & Penanganan
+  const saranHtml = `
+    <div class="section">
+      <div class="section-title">💊 Rekomendasi & Penanganan</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 8px;">
+          <strong style="color: #166534; font-size: 10pt;">Saran Medis & Istirahat</strong>
+          <ul class="solutions" style="color: #15803d;">
+            <li>Perbanyak istirahat total</li>
+            <li>Minum air putih yang cukup</li>
+            <li>Konsumsi makanan bergizi dan lunak</li>
+          </ul>
+        </div>
+        <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 12px; border-radius: 8px;">
+          <strong style="color: #1e40af; font-size: 10pt;">Tindakan Penanganan</strong>
+          <ul class="solutions" style="color: #1d4ed8;">
+            ${solutions.length > 0 ? solutions.map(s => `<li>${s}</li>`).join('') : '<li>Konsultasikan ke dokter spesialis THT.</li>'}
+          </ul>
+        </div>
+      </div>
+    </div>`
+
+  // Kapan ke dokter
+  const warningHtml = `
+    <div class="section" style="background: #fff1f2; border: 1px solid #fecdd3; padding: 12px 16px; border-radius: 8px; margin-top: 16px;">
+      <strong style="color: #be123c; font-size: 10pt;">⚠️ Segera ke dokter apabila Anda mengalami:</strong>
+      <ul style="padding-left: 20px; margin-top: 6px; margin-bottom: 0; font-size: 9.5pt; color: #9f1239;">
+        <li>Kesulitan bernapas atau sesak napas.</li>
+        <li>Demam tinggi lebih dari 3 hari.</li>
+        <li>Tidak bisa menelan makanan atau minuman sama sekali.</li>
+        <li>Nyeri atau pembengkakan yang bertambah parah dengan cepat.</li>
+      </ul>
+    </div>`
+
+  const html = \`<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <title>Hasil Pemeriksaan — ${patientName}</title>
+  <title>Hasil Pemeriksaan — \${patientName}</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Times New Roman', Times, serif;
-      font-size: 12pt;
+      font-size: 10pt;
       color: #1a1a1a;
       background: #fff;
       padding: 32px 48px;
@@ -562,220 +644,109 @@ const printResult = () => {
       align-items: center;
       gap: 20px;
       border-bottom: 3px solid #004d40;
-      padding-bottom: 16px;
+      padding-bottom: 12px;
       margin-bottom: 4px;
     }
     .letterhead-logo {
-      width: 60px; height: 60px;
+      width: 55px; height: 55px;
       border-radius: 50%;
       background: #004d40;
       display: flex; align-items: center; justify-content: center;
       color: #fff;
-      font-size: 22pt;
+      font-size: 20pt;
       font-weight: bold;
       flex-shrink: 0;
       font-family: Arial, sans-serif;
     }
     .letterhead-info h1 {
-      font-size: 16pt;
+      font-size: 15pt;
       font-weight: bold;
       color: #004d40;
       letter-spacing: 0.5px;
       font-family: Arial, sans-serif;
     }
-    .letterhead-info p {
-      font-size: 9pt;
-      color: #555;
-      margin-top: 2px;
-    }
-    .letterhead-right {
-      margin-left: auto;
-      text-align: right;
-      font-size: 9pt;
-      color: #555;
-    }
+    .letterhead-info p { font-size: 9pt; color: #555; margin-top: 2px; }
+    .letterhead-right { margin-left: auto; text-align: right; font-size: 9pt; color: #555; }
     .subtitle-bar {
-      background: #004d40;
-      color: #fff;
-      text-align: center;
-      font-family: Arial, sans-serif;
-      font-size: 11pt;
-      font-weight: bold;
-      letter-spacing: 1px;
-      padding: 5px 0;
-      margin-bottom: 20px;
+      background: #004d40; color: #fff; text-align: center; font-family: Arial, sans-serif;
+      font-size: 10pt; font-weight: bold; letter-spacing: 1px; padding: 4px 0; margin-bottom: 16px;
     }
 
     /* ── INFO PASIEN ── */
     .patient-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 6px 32px;
-      background: #f8fffe;
-      border: 1px solid #b2dfdb;
-      border-radius: 6px;
-      padding: 14px 18px;
-      margin-bottom: 20px;
-      font-size: 10.5pt;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 4px 32px;
+      background: #f8fffe; border: 1px solid #b2dfdb; border-radius: 6px;
+      padding: 12px 16px; margin-bottom: 16px; font-size: 9.5pt;
     }
     .patient-grid .row { display: contents; }
     .patient-grid .label { color: #666; font-style: italic; }
     .patient-grid .value { font-weight: bold; color: #1a1a1a; }
 
     /* ── SECTION ── */
-    .section { margin-bottom: 18px; }
+    .section { margin-bottom: 16px; page-break-inside: avoid; }
     .section-title {
-      font-family: Arial, sans-serif;
-      font-size: 11pt;
-      font-weight: bold;
-      color: #004d40;
-      border-left: 4px solid #004d40;
-      padding-left: 8px;
-      margin-bottom: 10px;
+      font-family: Arial, sans-serif; font-size: 10.5pt; font-weight: bold;
+      color: #004d40; border-left: 4px solid #004d40; padding-left: 8px; margin-bottom: 8px;
     }
 
     /* ── HASIL UTAMA ── */
     .result-box {
-      border: 2px solid #004d40;
-      border-radius: 8px;
-      overflow: hidden;
-      margin-bottom: 20px;
+      border: 2px solid #004d40; border-radius: 8px; overflow: hidden; margin-bottom: 16px;
     }
     .result-header {
-      background: #004d40;
-      color: #fff;
-      padding: 10px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      background: #004d40; color: #fff; padding: 8px 16px;
+      display: flex; justify-content: space-between; align-items: center;
     }
-    .result-header .disease-name {
-      font-size: 15pt;
-      font-weight: bold;
-      font-family: Arial, sans-serif;
-    }
-    .result-header .no-label {
-      font-size: 9pt;
-      opacity: 0.8;
-    }
-    .result-body { padding: 14px 16px; }
-
-    /* progress bar */
-    .prob-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 6px;
-    }
+    .result-header .disease-name { font-size: 14pt; font-weight: bold; font-family: Arial, sans-serif; }
+    .result-header .no-label { font-size: 8.5pt; opacity: 0.8; }
+    .result-body { padding: 12px 16px; }
+    .prob-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
     .prob-label { font-size: 9pt; color: #555; }
-    .prob-value {
-      font-size: 14pt;
-      font-weight: bold;
-      color: #004d40;
-    }
+    .prob-value { font-size: 14pt; font-weight: bold; color: #004d40; }
     .badge {
-      display: inline-block;
-      padding: 2px 10px;
-      border-radius: 12px;
-      font-size: 8.5pt;
-      font-weight: bold;
-      font-family: Arial, sans-serif;
-      background: ${statusBg};
-      color: ${statusColor};
+      display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 8.5pt;
+      font-weight: bold; font-family: Arial, sans-serif; background: \${statusBg}; color: \${statusColor};
     }
     .progress-track {
-      height: 8px;
-      background: #e0f2f1;
-      border-radius: 4px;
-      margin-bottom: 14px;
-      overflow: hidden;
+      height: 8px; background: #e0f2f1; border-radius: 4px; margin-bottom: 12px; overflow: hidden;
     }
-    .progress-fill {
-      height: 100%;
-      border-radius: 4px;
-      background: #004d40;
-      width: ${Math.min(result.persentase, 100)}%;
-    }
-    .desc-text { font-size: 10.5pt; line-height: 1.7; color: #333; margin-bottom: 12px; }
-    .solutions { padding-left: 18px; }
-    .solutions li { font-size: 10.5pt; line-height: 1.8; color: #333; }
+    .progress-fill { height: 100%; border-radius: 4px; background: #004d40; width: \${Math.min(pct, 100)}%; }
+    .desc-text { font-size: 9.5pt; line-height: 1.6; color: #333; margin-top: 4px; }
+    .solutions { padding-left: 18px; margin-top: 6px; margin-bottom: 0; }
+    .solutions li { font-size: 9.5pt; line-height: 1.6; margin-bottom: 4px; }
 
-    /* ── TABEL KEMUNGKINAN LAIN ── */
-    .other-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 10pt;
-    }
+    /* ── TABEL LAINNYA ── */
+    .other-table { width: 100%; border-collapse: collapse; font-size: 9.5pt; margin-top: 8px; }
     .other-table th {
-      background: #e0f2f1;
-      color: #004d40;
-      padding: 7px 10px;
-      text-align: left;
-      font-family: Arial, sans-serif;
-      font-size: 9pt;
-      border: 1px solid #b2dfdb;
+      background: #e0f2f1; color: #004d40; padding: 6px 8px; text-align: left;
+      font-family: Arial, sans-serif; border: 1px solid #b2dfdb;
     }
-    .other-table td {
-      padding: 7px 10px;
-      border: 1px solid #e5e7eb;
-      vertical-align: middle;
-    }
+    .other-table td { padding: 6px 8px; border: 1px solid #e5e7eb; vertical-align: middle; }
     .other-table tr:nth-child(even) td { background: #f9fffe; }
-    .badge-other {
-      display: inline-block;
-      background: #f3f4f6;
-      color: #374151;
-      border-radius: 10px;
-      padding: 1px 8px;
-      font-size: 8.5pt;
-      font-weight: bold;
-    }
-
+    
     /* ── DISCLAIMER ── */
     .disclaimer {
-      border: 1px solid #f59e0b;
-      background: #fffbeb;
-      border-radius: 6px;
-      padding: 12px 16px;
-      margin-top: 20px;
-      font-size: 9pt;
-      color: #78350f;
-      line-height: 1.6;
+      border: 1px solid #f59e0b; background: #fffbeb; border-radius: 6px;
+      padding: 10px 14px; margin-top: 16px; font-size: 8.5pt; color: #78350f; line-height: 1.5;
+      page-break-inside: avoid;
     }
-    .disclaimer strong { color: #92400e; }
 
     /* ── TANDA TANGAN ── */
-    .signature-area {
-      margin-top: 30px;
-      display: flex;
-      justify-content: flex-end;
-    }
-    .signature-box {
-      text-align: center;
-      font-size: 10pt;
-    }
-    .signature-box .sig-name {
-      font-weight: bold;
-      margin-top: 48px;
-      border-top: 1px solid #333;
-      padding-top: 4px;
-    }
-    .signature-box .sig-title { font-size: 9pt; color: #555; }
+    .signature-area { margin-top: 32px; display: flex; justify-content: flex-end; page-break-inside: avoid; }
+    .signature-box { text-align: center; font-size: 9pt; }
+    .signature-box .sig-name { font-weight: bold; margin-top: 40px; text-decoration: underline; }
+    .signature-box .sig-title { font-size: 8.5pt; color: #555; }
 
     /* ── FOOTER ── */
     .page-footer {
-      margin-top: 28px;
-      border-top: 1px solid #b2dfdb;
-      padding-top: 8px;
-      display: flex;
-      justify-content: space-between;
-      font-size: 8pt;
-      color: #999;
+      margin-top: 24px; border-top: 1px solid #b2dfdb; padding-top: 8px;
+      font-size: 7.5pt; color: #999; text-align: center;
     }
 
+    .page-break { page-break-before: always; }
+
     @media print {
-      body { padding: 20px 32px; }
-      button { display: none !important; }
+      body { padding: 12px 24px; }
     }
   </style>
 </head>
@@ -799,44 +770,47 @@ const printResult = () => {
   <!-- INFO PASIEN -->
   <div class="patient-grid">
     <span class="label">Nama Pasien</span>
-    <span class="value">${patientName}</span>
-    <span class="label">Email</span>
-    <span class="value">${patientEmail}</span>
+    <span class="value">\${patientName}</span>
+    <span class="label">ID Diagnosa</span>
+    <span class="value">\${docId}</span>
+    <span class="label">Tanggal Konsultasi</span>
+    <span class="value">\${printDate}</span>
     <span class="label">Tanggal Cetak</span>
-    <span class="value">${printDate}, ${printTime} WIB</span>
-    <span class="label">No. Dokumen</span>
-    <span class="value">SP-THT-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}-${Math.floor(Math.random()*9000+1000)}</span>
+    <span class="value">\${printDate}, \${printTime} WIB</span>
   </div>
 
   <!-- GEJALA YANG DIPILIH -->
-  ${gejalaHtml}
+  \${gejalaHtml}
 
   <!-- HASIL DIAGNOSIS UTAMA -->
   <div class="result-box">
     <div class="result-header">
       <div>
         <div class="no-label">Diagnosis Utama</div>
-        <div class="disease-name">🩺 ${result.nama_penyakit}</div>
+        <div class="disease-name">🩺 \${result.nama_penyakit}</div>
       </div>
-      <span class="badge">${result.status}</span>
+      <span class="badge">\${probText}</span>
     </div>
     <div class="result-body">
       <div class="prob-row">
-        <span class="prob-label">Tingkat Keyakinan Sistem</span>
-        <span class="prob-value">${result.persentase.toFixed(2)}%</span>
+        <span class="prob-label">Tingkat Keyakinan Sistem (Teorema Bayes)</span>
+        <span class="prob-value">\${pct.toFixed(2)}%</span>
       </div>
       <div class="progress-track"><div class="progress-fill"></div></div>
+      <div style="font-size: 9pt; color: #666; margin-top: -8px; margin-bottom: 12px;">
+        Kategori Risiko: <strong>\${riskKategori}</strong>
+      </div>
 
-      <div class="section-title">📄 Deskripsi Penyakit</div>
-      <p class="desc-text">${result.deskripsi || 'Belum tersedia deskripsi untuk penyakit ini.'}</p>
-
-      <div class="section-title">💊 Saran Medis & Penanganan</div>
-      <ul class="solutions">${solutionsHtml}</ul>
+      <!-- ALASAN SISTEM -->
+      \${alasanHtml}
     </div>
   </div>
 
-  <!-- KEMUNGKINAN LAIN -->
-  ${othersHtml}
+  \${detailPenyakitHtml}
+  \${saranHtml}
+  \${warningHtml}
+
+  \${othersHtml}
 
   <!-- DISCLAIMER -->
   <div class="disclaimer">
@@ -849,23 +823,51 @@ const printResult = () => {
   <!-- TANDA TANGAN -->
   <div class="signature-area">
     <div class="signature-box">
-      <p>${printDate}</p>
-      <div class="sig-name">Sistem Pakar THT</div>
-      <div class="sig-title">RS Jasa Kartini — Kelompok 2</div>
+      <p>Tasikmalaya, \${printDate}</p>
+      <p style="font-size: 8pt; color: #666; margin-top: 4px;">Divalidasi oleh</p>
+      <div class="sig-name">Sistem Pakar Diagnosis THT</div>
+      <div class="sig-title">RS Jasa Kartini</div>
     </div>
   </div>
 
   <!-- FOOTER -->
   <div class="page-footer">
-    <span>Sistem Pakar THT v1.0 — RS Jasa Kartini</span>
-    <span>Dicetak: ${printDate} ${printTime} WIB</span>
+    <p>Dokumen dibuat otomatis oleh Sistem Pakar Diagnosis Penyakit THT Menggunakan Metode Teorema Bayes Versi 1.0</p>
+  </div>
+
+  <!-- LAMPIRAN (Halaman Baru) -->
+  <div class="page-break"></div>
+  <div class="subtitle-bar" style="background: #475569; margin-top: 20px;">LAMPIRAN: PERHITUNGAN PROBABILITAS TEOREMA BAYES</div>
+  <div style="font-size: 9.5pt; color: #334155; line-height: 1.6; margin-top: 16px;">
+    <p>Nilai probabilitas dihitung menggunakan <strong>Teorema Bayes</strong> berdasarkan basis pengetahuan (knowledge base) pakar THT.</p>
+    
+    <div style="margin-top: 16px; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; background: #f8fafc;">
+      <h4 style="color: #0f172a; margin-bottom: 8px;">Detail Perhitungan untuk \${result.nama_penyakit}</h4>
+      <table style="width: 100%; border-collapse: collapse; font-size: 9pt; margin-top: 8px;">
+        <tr style="border-bottom: 1px solid #e2e8f0;">
+          <td style="padding: 6px 0; color: #64748b;">Total Gejala Dipilih</td>
+          <td style="padding: 6px 0; text-align: right; font-weight: bold;">\${dipilihCount}</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #e2e8f0;">
+          <td style="padding: 6px 0; color: #64748b;">Nilai Probabilitas Akhir (Posterior)</td>
+          <td style="padding: 6px 0; text-align: right; font-weight: bold;">\${(pct / 100).toFixed(4)}</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 0; color: #64748b;">Persentase Keyakinan</td>
+          <td style="padding: 6px 0; text-align: right; font-weight: bold; color: #004d40;">\${pct.toFixed(2)}%</td>
+        </tr>
+      </table>
+    </div>
+    <p style="margin-top: 12px; font-size: 8.5pt; color: #94a3b8; text-align: center;">
+      *Nilai prior dan conditional probability gejala tersimpan dengan aman di dalam database sistem.
+    </p>
   </div>
 
   <script>
     window.onload = () => window.print();
-  <\/script>
+  </script>
 </body>
-</html>`
+</html>\`
 
   const win = window.open('', '_blank', 'width=860,height=900,scrollbars=yes')
   win.document.write(html)
