@@ -91,90 +91,99 @@
 
     <!-- Detail Drawer -->
     <Drawer v-model:visible="isDrawerOpen" position="right" class="w-full md:w-[500px]" :pt="{
-      root: { class: 'bg-surface' },
-      header: { class: 'bg-surface-container-low border-b border-outline-variant' },
-      title: { class: 'font-headline-sm font-bold text-primary' }
+      root: { class: 'bg-slate-50' },
+      header: { class: 'bg-white border-b border-slate-200 px-6 py-4' },
+      title: { class: 'text-xl font-bold text-slate-800' }
     }">
       <template #header>
-        <span class="font-headline-sm font-bold text-primary">Detail Diagnosa</span>
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-teal-600">assignment</span>
+          <span class="text-lg font-bold text-slate-800">Detail Diagnosa</span>
+        </div>
       </template>
 
-      <div class="flex flex-col gap-6 py-4" v-if="selectedItem">
+      <div class="flex flex-col gap-5 p-2" v-if="selectedItem">
         <!-- Card 1: Header (Diagnosis & Tanggal) -->
-        <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-sm">
-          <p class="font-label-sm text-on-surface-variant uppercase tracking-wider mb-1">Hasil Analisis</p>
-          <h2 class="font-headline-md font-bold text-primary mb-2">{{ selectedItem.penyakit }}</h2>
-          <div class="flex items-center gap-2 text-on-surface-variant font-label-sm">
-            <span class="material-symbols-outlined text-[16px]">calendar_today</span>
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm relative overflow-hidden">
+          <div class="absolute top-0 left-0 w-1.5 h-full bg-teal-500"></div>
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Hasil Analisis</p>
+          <h2 class="text-2xl font-bold text-slate-800 mb-3 flex items-center gap-2">
+            {{ selectedItem.penyakit }}
+          </h2>
+          <div class="flex items-center gap-2 text-slate-500 text-sm font-medium">
+            <span class="material-symbols-outlined text-[18px]">calendar_today</span>
             {{ formatDateTime(selectedItem.tanggal) }}
           </div>
         </div>
 
         <!-- Card 2: Gejala Dipilih -->
-        <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
-          <div class="bg-surface-container-low px-4 py-3 border-b border-outline-variant flex items-center gap-2">
-            <span class="material-symbols-outlined text-secondary text-[18px]">checklist</span>
-            <h3 class="font-label-md font-bold text-primary">Gejala yang Dipilih</h3>
+        <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+          <div class="bg-slate-50/80 px-5 py-3.5 border-b border-slate-200 flex items-center gap-2.5">
+            <span class="material-symbols-outlined text-teal-600 text-[20px]">checklist</span>
+            <h3 class="font-bold text-slate-800">Gejala yang Dialami</h3>
           </div>
-          <div class="p-4">
-            <ul class="flex flex-col gap-2">
-              <li v-for="(gejala, idx) in selectedItem.gejala_list" :key="idx" class="flex items-start gap-2">
-                <span class="material-symbols-outlined text-[16px] text-tertiary mt-0.5">check_circle</span>
-                <span class="font-body-sm text-on-surface">{{ gejala }}</span>
+          <div class="p-5">
+            <ul class="flex flex-col gap-3">
+              <li v-for="(gejala, idx) in selectedItem.gejala_list" :key="idx" class="flex items-start gap-3">
+                <span class="material-symbols-outlined text-[20px] text-teal-500 mt-0.5">check_circle</span>
+                <span class="text-slate-700 leading-relaxed">{{ gejala }}</span>
               </li>
             </ul>
           </div>
         </div>
 
         <!-- Card 3: Hasil Bayes -->
-        <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
-          <div class="bg-surface-container-low px-4 py-3 border-b border-outline-variant flex items-center gap-2">
-            <span class="material-symbols-outlined text-secondary text-[18px]">calculate</span>
-            <h3 class="font-label-md font-bold text-primary">Probabilitas Diagnosis</h3>
+        <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+          <div class="bg-slate-50/80 px-5 py-3.5 border-b border-slate-200 flex items-center gap-2.5">
+            <span class="material-symbols-outlined text-teal-600 text-[20px]">analytics</span>
+            <h3 class="font-bold text-slate-800">Tingkat Probabilitas</h3>
           </div>
-          <div class="p-4 flex flex-col items-center">
-            <div class="relative w-32 h-32 flex items-center justify-center mb-2">
-              <!-- Simple circular representation using CSS border -->
-              <div class="absolute inset-0 rounded-full border-[12px] border-surface-container-high"></div>
-              <div class="absolute inset-0 rounded-full border-[12px] border-primary"
-                   :style="{ clipPath: `polygon(50% 50%, 50% 0%, ${getClipPath(selectedItem.persentase)})` }"></div>
-              <div class="absolute inset-2 bg-surface-container-lowest rounded-full flex items-center justify-center">
-                <span class="font-headline-md font-black text-primary">{{ Number(selectedItem.persentase || 0).toFixed(2) }}%</span>
+          <div class="p-6">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-slate-600 font-medium">Tingkat Keyakinan Sistem</span>
+              <span class="text-2xl font-black" :class="getProbabilityClass(selectedItem.persentase)">
+                {{ Number(selectedItem.persentase || 0).toFixed(2) }}%
+              </span>
+            </div>
+            <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden mb-4">
+              <div class="h-full rounded-full transition-all duration-1000 ease-out" 
+                   :class="getProbabilityBgClass(selectedItem.persentase)"
+                   :style="{ width: `${Number(selectedItem.persentase || 0)}%` }">
               </div>
             </div>
-            <p class="font-label-sm text-center text-on-surface-variant max-w-xs">
-              Keyakinan sistem terhadap <strong>{{ selectedItem.penyakit }}</strong> berdasarkan perhitungan probabilitas kondisional gejala.
+            <p class="text-sm text-slate-500 text-center leading-relaxed bg-slate-50 p-3 rounded-xl">
+              Tingkat keyakinan bahwa diagnosis mengarah pada <strong>{{ selectedItem.penyakit }}</strong> berdasarkan perhitungan Teorema Bayes.
             </p>
           </div>
         </div>
 
         <!-- Card 4: Penjelasan -->
-        <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
-          <div class="bg-surface-container-low px-4 py-3 border-b border-outline-variant flex items-center gap-2">
-            <span class="material-symbols-outlined text-secondary text-[18px]">info</span>
-            <h3 class="font-label-md font-bold text-primary">Penjelasan Penyakit</h3>
+        <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+          <div class="bg-slate-50/80 px-5 py-3.5 border-b border-slate-200 flex items-center gap-2.5">
+            <span class="material-symbols-outlined text-teal-600 text-[20px]">info</span>
+            <h3 class="font-bold text-slate-800">Informasi Penyakit</h3>
           </div>
-          <div class="p-4">
-            <p class="font-body-sm text-on-surface leading-relaxed whitespace-pre-line">{{ selectedItem.deskripsi || 'Informasi tidak tersedia.' }}</p>
+          <div class="p-5">
+            <p class="text-slate-700 leading-relaxed whitespace-pre-line">{{ selectedItem.deskripsi || 'Informasi deskripsi penyakit tidak tersedia.' }}</p>
           </div>
         </div>
 
         <!-- Card 5: Saran -->
-        <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
-          <div class="bg-surface-container-low px-4 py-3 border-b border-outline-variant flex items-center gap-2">
-            <span class="material-symbols-outlined text-tertiary text-[18px]">medical_services</span>
-            <h3 class="font-label-md font-bold text-primary">Saran Penanganan</h3>
+        <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+          <div class="bg-teal-50/50 px-5 py-3.5 border-b border-teal-100 flex items-center gap-2.5">
+            <span class="material-symbols-outlined text-teal-600 text-[20px]">medical_services</span>
+            <h3 class="font-bold text-teal-800">Saran Penanganan</h3>
           </div>
-          <div class="p-4">
-            <p class="font-body-sm text-on-surface leading-relaxed whitespace-pre-line">{{ selectedItem.solusi || 'Silakan konsultasikan ke dokter spesialis THT.' }}</p>
+          <div class="p-5 bg-teal-50/30">
+            <p class="text-teal-900 leading-relaxed whitespace-pre-line">{{ selectedItem.solusi || 'Silakan konsultasikan lebih lanjut ke dokter spesialis THT.' }}</p>
           </div>
         </div>
 
         <!-- Disclaimer Footer -->
-        <div class="bg-error-container/30 border border-error-container rounded-lg p-4 mt-2">
-          <p class="font-label-sm text-error/90 text-center leading-relaxed">
-            <strong>Perhatian:</strong> Hasil diagnosis ini hanya sebagai referensi awal berdasarkan gejala yang Anda masukkan. 
-            Segera hubungi fasilitas medis untuk mendapatkan diagnosis klinis dan resep yang tepat.
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mt-2">
+          <p class="text-sm text-amber-800 text-center leading-relaxed">
+            <strong class="font-semibold block mb-1">⚠️ Perhatian</strong>
+            Hasil diagnosis ini hanya sebagai skrining awal. Segera hubungi dokter atau fasilitas kesehatan untuk mendapatkan diagnosis klinis yang pasti.
           </p>
         </div>
 
