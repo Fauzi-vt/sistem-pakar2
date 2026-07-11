@@ -659,11 +659,11 @@ const printResult = () => {
       </ul>
     </div>`
 
-  const html = \`<!DOCTYPE html>
+  const html = `<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <title>Hasil Pemeriksaan — \${patientName}</title>
+  <title>Hasil Pemeriksaan — ${patientName}</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -743,12 +743,12 @@ const printResult = () => {
     .prob-value { font-size: 14pt; font-weight: bold; color: #004d40; }
     .badge {
       display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 8.5pt;
-      font-weight: bold; font-family: Arial, sans-serif; background: \${statusBg}; color: \${statusColor};
+      font-weight: bold; font-family: Arial, sans-serif; background: ${statusBg}; color: ${statusColor};
     }
     .progress-track {
       height: 8px; background: #e0f2f1; border-radius: 4px; margin-bottom: 12px; overflow: hidden;
     }
-    .progress-fill { height: 100%; border-radius: 4px; background: #004d40; width: \${Math.min(pct, 100)}%; }
+    .progress-fill { height: 100%; border-radius: 4px; background: #004d40; width: ${Math.min(pct, 100)}%; }
     .desc-text { font-size: 9.5pt; line-height: 1.6; color: #333; margin-top: 4px; }
     .solutions { padding-left: 18px; margin-top: 6px; margin-bottom: 0; }
     .solutions li { font-size: 9.5pt; line-height: 1.6; margin-bottom: 4px; }
@@ -788,7 +788,7 @@ const printResult = () => {
     }
   </style>
 </head>
-<body>
+<body onload="window.print()">
 
   <!-- KOP SURAT -->
   <div class="letterhead">
@@ -808,17 +808,17 @@ const printResult = () => {
   <!-- INFO PASIEN -->
   <div class="patient-grid">
     <span class="label">Nama Pasien</span>
-    <span class="value">\${patientName}</span>
+    <span class="value">${patientName}</span>
     <span class="label">ID Diagnosa</span>
-    <span class="value">\${docId}</span>
+    <span class="value">${docId}</span>
     <span class="label">Tanggal Konsultasi</span>
-    <span class="value">\${printDate}</span>
+    <span class="value">${printDate}</span>
     <span class="label">Tanggal Cetak</span>
-    <span class="value">\${printDate}, \${printTime} WIB</span>
+    <span class="value">${printDate}, ${printTime} WIB</span>
   </div>
 
   <!-- GEJALA YANG DIPILIH -->
-  \${gejalaHtml}
+  ${gejalaHtml}
 
   <!-- HASIL DIAGNOSIS UTAMA -->
   <div class="result-box">
@@ -826,31 +826,31 @@ const printResult = () => {
       <div>
         <div class="no-label">Diagnosis Utama</div>
         <div class="disease-name" style="display: flex; align-items: center; gap: 8px;">
-          🩺 <span style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 6px; font-size: 12pt;">\${result.kode_penyakit}</span> \${result.nama_penyakit}
+          🩺 <span style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 6px; font-size: 12pt;">${result.kode_penyakit}</span> ${result.nama_penyakit}
         </div>
       </div>
-      <span class="badge">\${probText}</span>
+      <span class="badge">${probText}</span>
     </div>
     <div class="result-body">
       <div class="prob-row">
         <span class="prob-label">Tingkat Keyakinan Sistem (Teorema Bayes)</span>
-        <span class="prob-value">\${pct.toFixed(2)}%</span>
+        <span class="prob-value">${pct.toFixed(2)}%</span>
       </div>
       <div class="progress-track"><div class="progress-fill"></div></div>
       <div style="font-size: 9pt; color: #666; margin-top: -8px; margin-bottom: 12px;">
-        Kategori Risiko: <strong>\${riskKategori}</strong>
+        Kategori Risiko: <strong>${riskKategori}</strong>
       </div>
 
       <!-- ALASAN SISTEM -->
-      \${alasanHtml}
+      ${alasanHtml}
     </div>
   </div>
 
-  \${detailPenyakitHtml}
-  \${saranHtml}
-  \${warningHtml}
+  ${detailPenyakitHtml}
+  ${saranHtml}
+  ${warningHtml}
 
-  \${othersHtml}
+  ${othersHtml}
 
   <!-- DISCLAIMER -->
   <div class="disclaimer">
@@ -863,7 +863,7 @@ const printResult = () => {
   <!-- TANDA TANGAN -->
   <div class="signature-area">
     <div class="signature-box">
-      <p>Tasikmalaya, \${printDate}</p>
+      <p>Tasikmalaya, ${printDate}</p>
       <p style="font-size: 8pt; color: #666; margin-top: 4px;">Divalidasi oleh</p>
       <div class="sig-name">Sistem Pakar Diagnosis THT</div>
       <div class="sig-title">RS Jasa Kartini</div>
@@ -882,19 +882,19 @@ const printResult = () => {
     <p>Nilai probabilitas dihitung menggunakan <strong>Teorema Bayes</strong> berdasarkan basis pengetahuan (knowledge base) pakar THT.</p>
     
     <div style="margin-top: 16px; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; background: #f8fafc;">
-      <h4 style="color: #0f172a; margin-bottom: 8px;">Detail Perhitungan untuk \${result.nama_penyakit}</h4>
+      <h4 style="color: #0f172a; margin-bottom: 8px;">Detail Perhitungan untuk ${result.nama_penyakit}</h4>
       <table style="width: 100%; border-collapse: collapse; font-size: 9pt; margin-top: 8px;">
         <tr style="border-bottom: 1px solid #e2e8f0;">
           <td style="padding: 6px 0; color: #64748b;">Total Gejala Dipilih</td>
-          <td style="padding: 6px 0; text-align: right; font-weight: bold;">\${dipilihCount}</td>
+          <td style="padding: 6px 0; text-align: right; font-weight: bold;">${dipilihCount}</td>
         </tr>
         <tr style="border-bottom: 1px solid #e2e8f0;">
           <td style="padding: 6px 0; color: #64748b;">Nilai Probabilitas Akhir (Posterior)</td>
-          <td style="padding: 6px 0; text-align: right; font-weight: bold;">\${(pct / 100).toFixed(4)}</td>
+          <td style="padding: 6px 0; text-align: right; font-weight: bold;">${(pct / 100).toFixed(4)}</td>
         </tr>
         <tr>
           <td style="padding: 6px 0; color: #64748b;">Persentase Keyakinan</td>
-          <td style="padding: 6px 0; text-align: right; font-weight: bold; color: #004d40;">\${pct.toFixed(2)}%</td>
+          <td style="padding: 6px 0; text-align: right; font-weight: bold; color: #004d40;">${pct.toFixed(2)}%</td>
         </tr>
       </table>
     </div>
@@ -903,11 +903,8 @@ const printResult = () => {
     </p>
   </div>
 
-  <script>
-    window.onload = () => window.print();
-  </script>
 </body>
-</html>\`
+</html>`
 
   const win = window.open('', '_blank', 'width=860,height=900,scrollbars=yes')
   win.document.write(html)
