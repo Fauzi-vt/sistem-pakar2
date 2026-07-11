@@ -122,7 +122,12 @@
             <div class="relative z-10">
               <p class="text-sm font-semibold text-[#a7f3d0] mb-1 tracking-wider uppercase">Hasil Diagnosis</p>
               <h1 class="text-4xl font-extrabold mb-4 flex items-center gap-3">
-                <span v-if="topResult">{{ topResult.nama_penyakit }}</span>
+                <span v-if="topResult">
+                  <span class="inline-block bg-white/20 text-[#a7f3d0] px-3 py-1 rounded-lg text-xl font-bold mr-2 align-middle">
+                    {{ topResult.kode_penyakit }}
+                  </span>
+                  {{ topResult.nama_penyakit }}
+                </span>
                 <span v-else>Tidak Ditemukan</span>
               </h1>
               
@@ -164,11 +169,27 @@
                 <CheckSquare class="text-[#00685f] w-5 h-5" />
                 <span>Gejala yang Anda pilih</span>
               </h3>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div v-for="gejala in selectedGejalaDetails" :key="gejala.id" class="flex items-center gap-2 text-sm text-[#3d4947]">
-                  <Check class="w-4 h-4 text-[#00685f] shrink-0" />
-                  <span>{{ gejala.nama }}</span>
-                </div>
+              <div class="overflow-hidden rounded-xl border border-[#e2e8f0] shadow-sm">
+                <table class="w-full text-sm text-left">
+                  <thead class="text-xs text-[#475569] uppercase bg-gradient-to-r from-[#f8fafc] to-[#f1f5f9] border-b border-[#e2e8f0]">
+                    <tr>
+                      <th class="px-5 py-4 w-16 text-center font-bold tracking-wider">No</th>
+                      <th class="px-5 py-4 w-36 font-bold tracking-wider">Kode Gejala</th>
+                      <th class="px-5 py-4 font-bold tracking-wider">Nama Gejala</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-[#e2e8f0]">
+                    <tr v-for="(gejala, idx) in selectedGejalaDetails" :key="gejala.id" class="bg-white hover:bg-[#f8fafc] transition-colors group">
+                      <td class="px-5 py-4 text-center text-[#64748b] font-medium">{{ idx + 1 }}</td>
+                      <td class="px-5 py-4">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-[#f0fdf4] text-[#166534] text-xs font-bold border border-[#bbf7d0] shadow-sm">
+                          {{ gejala.kode }}
+                        </span>
+                      </td>
+                      <td class="px-5 py-4 text-[#334155] font-medium group-hover:text-[#0f172a] transition-colors">{{ gejala.nama }}</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
 
@@ -198,31 +219,38 @@
                 <List class="text-[#00685f] w-5 h-5" />
                 <span>Hasil Analisis Seluruh Penyakit</span>
               </h3>
-              <div class="overflow-x-auto">
+              <div class="overflow-hidden rounded-xl border border-[#e2e8f0] shadow-sm">
                 <table class="w-full text-sm text-left">
-                  <thead class="text-xs text-[#6d7a77] uppercase bg-[#f8f9ff] border-b border-[#bcc9c6]/30">
+                  <thead class="text-xs text-[#475569] uppercase bg-gradient-to-r from-[#f8fafc] to-[#f1f5f9] border-b border-[#e2e8f0]">
                     <tr>
-                      <th class="px-4 py-3 font-semibold">Penyakit</th>
-                      <th class="px-4 py-3 font-semibold w-1/2">Probabilitas</th>
-                      <th class="px-4 py-3 font-semibold text-right">Nilai</th>
+                      <th class="px-5 py-4 w-36 font-bold tracking-wider">Kode Penyakit</th>
+                      <th class="px-5 py-4 font-bold tracking-wider">Penyakit</th>
+                      <th class="px-5 py-4 font-bold tracking-wider w-1/3 md:w-1/2">Probabilitas</th>
+                      <th class="px-5 py-4 font-bold tracking-wider text-right">Nilai</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    <tr v-for="(item, idx) in diagnosaResult.hasil" :key="item.penyakit_id" class="border-b border-[#bcc9c6]/10 last:border-0 hover:bg-[#f8f9ff]/50 transition-colors">
-                      <td class="px-4 py-3 font-medium" :class="idx === 0 ? 'text-[#00685f] font-bold' : 'text-[#3d4947]'">
-                        {{ item.nama_penyakit }}
-                        <span v-if="idx === 0" class="ml-2 inline-flex px-2 py-0.5 rounded text-[9px] font-bold bg-[#dcfce7] text-[#15803d]">UTAMA</span>
+                  <tbody class="divide-y divide-[#e2e8f0]">
+                    <tr v-for="(item, idx) in diagnosaResult.hasil" :key="item.penyakit_id" class="bg-white hover:bg-[#f8fafc] transition-colors group">
+                      <td class="px-5 py-4">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold border shadow-sm transition-colors"
+                              :class="idx === 0 ? 'bg-[#eff6ff] text-[#1d4ed8] border-[#bfdbfe]' : 'bg-[#f8fafc] text-[#64748b] border-[#e2e8f0]'">
+                          {{ item.kode_penyakit }}
+                        </span>
                       </td>
-                      <td class="px-4 py-3">
+                      <td class="px-5 py-4 font-medium" :class="idx === 0 ? 'text-[#0f172a] font-bold text-base' : 'text-[#334155]'">
+                        {{ item.nama_penyakit }}
+                        <span v-if="idx === 0" class="ml-2 inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold bg-[#10b981] text-white shadow-sm tracking-wide">UTAMA</span>
+                      </td>
+                      <td class="px-5 py-4">
                         <div class="flex items-center gap-2 w-full">
-                          <div class="flex-1 h-2 rounded-full bg-[#e5eeff] overflow-hidden">
-                            <div class="h-full rounded-full transition-all duration-1000" 
-                                 :class="idx === 0 ? 'bg-[#00685f]' : 'bg-[#94a3b8]'"
+                          <div class="flex-1 h-2.5 rounded-full bg-[#e2e8f0] overflow-hidden shadow-inner">
+                            <div class="h-full rounded-full transition-all duration-1000 ease-out" 
+                                 :class="idx === 0 ? 'bg-gradient-to-r from-[#0ea5e9] to-[#3b82f6]' : 'bg-[#94a3b8]'"
                                  :style="{ width: `${Math.min(item.persentase, 100)}%` }"></div>
                           </div>
                         </div>
                       </td>
-                      <td class="px-4 py-3 text-right font-semibold" :class="idx === 0 ? 'text-[#00685f]' : 'text-[#64748b]'">
+                      <td class="px-5 py-4 text-right font-bold" :class="idx === 0 ? 'text-[#3b82f6] text-base' : 'text-[#64748b]'">
                         {{ item.persentase.toFixed(2) }}%
                       </td>
                     </tr>
@@ -504,16 +532,20 @@ const printResult = () => {
         <thead>
           <tr>
             <th style="width: 40px; text-align: center;">No</th>
+            <th style="width: 120px; text-align: center;">Kode Gejala</th>
             <th>Nama Gejala</th>
-            <th style="width: 100px; text-align: center;">Kode</th>
           </tr>
         </thead>
         <tbody>
           ${selectedGejalaDetails.value.map((g, i) => `
             <tr>
               <td style="text-align:center;color:#6b7280">${i + 1}</td>
-              <td>${g.nama}</td>
-              <td style="text-align:center;font-weight:600">${g.kode}</td>
+              <td style="text-align:center;">
+                <span style="background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; padding:2px 8px; border-radius:4px; font-size:8pt; font-weight:bold;">
+                  ${g.kode}
+                </span>
+              </td>
+              <td style="font-weight: 500;">${g.nama}</td>
             </tr>`).join('')}
         </tbody>
       </table>
@@ -538,6 +570,7 @@ const printResult = () => {
         <thead>
           <tr>
             <th style="width: 40px; text-align: center;">#</th>
+            <th style="width: 120px; text-align: center;">Kode Penyakit</th>
             <th>Nama Penyakit</th>
             <th style="width: 150px; text-align: center;">Probabilitas</th>
           </tr>
@@ -546,8 +579,13 @@ const printResult = () => {
           ${others.map((o, i) => `
             <tr>
               <td style="text-align:center;color:#6b7280">${i + 2}</td>
-              <td>${o.nama_penyakit}</td>
-              <td style="text-align:center;font-weight:600">${o.persentase.toFixed(2)}%</td>
+              <td style="text-align:center;">
+                <span style="background:#f8fafc; color:#475569; border:1px solid #e2e8f0; padding:2px 8px; border-radius:4px; font-size:8pt; font-weight:bold;">
+                  ${o.kode_penyakit || '-'}
+                </span>
+              </td>
+              <td style="font-weight: 500;">${o.nama_penyakit}</td>
+              <td style="text-align:center;font-weight:bold;color:#3b82f6;">${o.persentase.toFixed(2)}%</td>
             </tr>`).join('')}
         </tbody>
       </table>
@@ -787,7 +825,9 @@ const printResult = () => {
     <div class="result-header">
       <div>
         <div class="no-label">Diagnosis Utama</div>
-        <div class="disease-name">🩺 \${result.nama_penyakit}</div>
+        <div class="disease-name" style="display: flex; align-items: center; gap: 8px;">
+          🩺 <span style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 6px; font-size: 12pt;">\${result.kode_penyakit}</span> \${result.nama_penyakit}
+        </div>
       </div>
       <span class="badge">\${probText}</span>
     </div>
